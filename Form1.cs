@@ -21,6 +21,11 @@ namespace Formular_Specification
 
         string LastInput;
         int LastPosition;
+        int previousLength = 0;
+        int BackupStart, BackupLength;
+        string[] keywords = { "Post", "post", "pre", "Pre"};
+        string[] variable = { "N", "R", "B", "char"};
+        //string[] Calculation = { "+", "-", "*", "/", "%", ">", "<", "=", "!=", ">=", "<=", "!", "&&", "||"};
 
         Stack<string> undo;
         Stack<int> undoCursor;
@@ -42,12 +47,6 @@ namespace Formular_Specification
         /// </summary>
         string[] arrSentence;
 
-        #region Background Worker
-        BackgroundWorker worker;
-        int BackupStart, BackupLength;
-        List<Point> lstKeywordPos;
-        bool isFormating = false;
-        #endregion
         #endregion
 
         public Form1()
@@ -57,11 +56,6 @@ namespace Formular_Specification
             init();
 
             txtLanguage.Text = "C#";
-
-            worker = new BackgroundWorker();
-            worker.WorkerSupportsCancellation = true;
-            worker.DoWork += Worker_DoWork;
-            worker.RunWorkerCompleted += Worker_RunWorkerCompleted;
         }
 
         private void init()
@@ -145,12 +139,28 @@ namespace Formular_Specification
 
         private void txtInput_TextChanged(object sender, EventArgs e)
         {
-            
-            //MessageBox.Show("Text");
+            //Xu ly highlight
+
+            //Luu lai vi tri con tro hien tai
+            BackupLength = txtInput.SelectionLength;
+            BackupStart = txtInput.SelectionStart;
+
+            if (Math.Abs(txtInput.Text.Length - previousLength) > 1 || isRedo || isUndo) 
+                HighlightAllLine();
+            else HighlightCurrentWord(); //type keyboard :))
+            previousLength = txtInput.Text.Length;
+
+            //Tra moi thu ve nhu cu
+            txtInput.SelectionStart = BackupStart;
+            txtInput.SelectionLength = BackupLength;
+            txtInput.SelectionColor = Color.Black;
+            txtInput.SelectionFont = new Font("Courier New", 12, FontStyle.Regular);
+
+
             isEdited = true;
-            if (isFormating)
-                return;
-            RichTextBox textBox = sender as RichTextBox;
+
+            //if (previousLength == txtInput.Text.Length)
+            //   return;
 
             if (!isUndo && !isRedo) //Nếu không phải thao tác undo và redo thì sẽ lưu sự thay đổi lại vào stack
             {
@@ -164,8 +174,8 @@ namespace Formular_Specification
                     redo.Clear();
                     btnRedo.Enabled = false;
                 }
-                redo.Push(textBox.Text);
-                redoCursor.Push(textBox.SelectionStart);
+                redo.Push(txtInput.Text);
+                redoCursor.Push(txtInput.SelectionStart);
             }
             else
             {
@@ -173,139 +183,98 @@ namespace Formular_Specification
                 isRedo = false;
             }
 
-            //BackupStart = txtInput.SelectionStart;
-            //BackupLength = txtInput.SelectionLength;
-
-            //string content = txtInput.Text;
-            //Regex breakLine = new Regex("\\n");
-            //string[] lines = breakLine.Split(content);
-
-            //Regex r = new Regex("([ \\t{}():;])");
-            //string[] keywords = { "Post", "Pre", "pre", "post", "R" };
-            //int index = 0;
-            //foreach (string line in lines)
-            //{
-            //    string[] words = r.Split(line);
-            //    foreach (string word in words)
-            //    {
-            //        txtInput.SelectionStart = index;
-            //        txtInput.SelectionLength = word.Length;
-            //        if (keywords.Contains(word))
-            //        {
-            //            //lstKeywordPos.Add(new Point(index, word.Length));
-            //            txtInput.SelectionColor = Color.Blue;
-            //            txtInput.SelectionFont = new Font("Courier New", 12, FontStyle.Bold);
-            //        }
-            //        index += word.Length;
-            //    }
-            //    index++;
-            //}
-            //txtInput.SelectionColor = Color.Black;
-            //txtInput.SelectionFont = new Font("Courier New", 12, FontStyle.Regular);
-            //txtInput.SelectionStart = BackupStart;
-            //txtInput.SelectionLength = BackupLength;
-
-            //MessageBox.Show("a");
-            //if (worker.IsBusy)
-            //    worker.CancelAsync();
-            //if (!worker.IsBusy)
-            //    worker.RunWorkerAsync();
-
-            LastInput = textBox.Text;
-            LastPosition = textBox.SelectionStart;
-
+            LastInput = txtInput.Text;
+            LastPosition = txtInput.SelectionStart;
         }
 
-        private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void HighlightAllLine()
         {
-            //MessageBox.Show("Edit");
-            isFormating = true;
-            txtInput.SelectionStart = 0;
-            txtInput.SelectionLength = txtInput.Text.Length;
-            txtInput.SelectionColor = Color.Black;
-            txtInput.SelectionFont = new Font("Courier New", 12, FontStyle.Regular);
-            foreach (Point item in lstKeywordPos)
-            {
-                txtInput.SelectionStart = item.X;
-                txtInput.SelectionLength = item.Y;
-                txtInput.SelectionColor = Color.Blue;
-                txtInput.SelectionFont = new Font("Courier New", 12, FontStyle.Bold);
-                MessageBox.Show(txtInput.SelectedText + " " + item.X + " " + item.Y);
-            }
-            txtInput.SelectionStart = BackupStart;
-            txtInput.SelectionLength = BackupLength;
-            isFormating = false;
-        }
+            Regex r = new Regex("\\n");
+            string[] lines = r.Split(txtInput.Text);
 
-        private void Worker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            lstKeywordPos = new List<Point>();
-            string content = txtInput.Text;
-            Regex breakLine = new Regex("\\n");
-            string[] lines = breakLine.Split(content);
-
-            Regex r = new Regex("([ \\t{}():;])");
-            string[] keywords = { "Post", "Pre", "pre", "post", "R" };
             int index = 0;
             foreach (string line in lines)
             {
-                string[] words = r.Split(line);
-                foreach (string word in words)
-                {
-                    if (keywords.Contains(word))
-                    {
-                        lstKeywordPos.Add(new Point(index, word.Length));
-                    }
-                    index += word.Length;
-                }
-                index++;
+                HighLight(line, index);
+                index = index + line.Length + 1;
             }
         }
 
-        void ParseLine2(string line)
+        private void HighLight(string line, int startPositon)
         {
-            // Check whether the token is a keyword.   
-            String[] keywords = { "public", "void", "using", "static", "class" };
-            Regex r = new Regex("([ \\t{}():;])");
-            String[] tokens = r.Split(line);
-            foreach (string token in tokens)
+            Regex r = new Regex("([ \\t{}();,:*])");
+            int index = startPositon;
+            //Cat dong hien tai ra thanh cac tu rieng biet de so sanh voi keyword
+            string[] words = r.Split(line);
+            foreach (string word in words)
             {
-                if (keywords.Contains(token))
+                txtInput.SelectionStart = index;
+                txtInput.SelectionLength = word.Length;
+ 
+                if (keywords.Contains(word))
                 {
-                    // Apply alternative color and font to highlight keyword.  
+                    //MessageBox.Show(word);
                     txtInput.SelectionColor = Color.Blue;
-                    txtInput.SelectionFont = new Font("Courier New", 10, FontStyle.Bold);
+                    txtInput.SelectionFont = new Font("Courier New", 12, FontStyle.Bold);
+                }
+                else if (variable.Contains(word))
+                {
+                    txtInput.SelectionColor = Color.Red;
+                    txtInput.SelectionFont = new Font("Courier New", 12, FontStyle.Bold);
                 }
 
-                txtInput.SelectedText = token;
+                index += word.Length;
             }
-            txtInput.SelectedText = "\n";
         }
 
-        void ParseLine(string line)
+        private void HighlightCurrentWord()
         {
-            Regex r = new Regex("([ \\t{}():;])");
-            String[] tokens = r.Split(line);
-            foreach (string token in tokens)
+            //Tìm vị trí bắt đầu của tu đang xét
+            int StartIndex = txtInput.SelectionStart - 1;
+            while (StartIndex >= 0)
             {
-                // Set the tokens default color and font.  
-                txtInput.SelectionColor = Color.Black;
-                txtInput.SelectionFont = new Font("Courier New", 10, FontStyle.Regular);
-                // Check whether the token is a keyword.   
-                String[] keywords = { "public", "void", "using", "static", "class" };
-                for (int i = 0; i < keywords.Length; i++)
+                if (txtInput.Text[StartIndex] == '\n' || !char.IsLetter(txtInput.Text[StartIndex]))
                 {
-                    if (keywords[i] == token)
-                    {
-                        // Apply alternative color and font to highlight keyword.  
-                        txtInput.SelectionColor = Color.Blue;
-                        txtInput.SelectionFont = new Font("Courier New", 10, FontStyle.Bold);
-                        break;
-                    }
+                    StartIndex++;
+                    break;
                 }
-                txtInput.SelectedText = token;
+                StartIndex--;
             }
-            txtInput.SelectedText = "\n";
+            if (StartIndex < 0)
+                StartIndex = 0;
+
+            //Tìm vị trí cuối dòng của tu đang xét
+            int EndIndex = txtInput.SelectionStart;
+            while (EndIndex < txtInput.Text.Length)
+            {
+                if (txtInput.Text[EndIndex] == '\n' || !char.IsLetter(txtInput.Text[EndIndex]))
+                    break;
+                EndIndex++;
+            }
+
+
+            //lay tu hien tai
+            string currentWord = txtInput.Text.Substring(StartIndex, EndIndex - StartIndex);
+            //MessageBox.Show(currentWord);
+
+            txtInput.SelectionStart = StartIndex;
+            txtInput.SelectionLength = currentWord.Length;
+            if (keywords.Contains(currentWord))
+            {
+                
+                txtInput.SelectionColor = Color.Blue;
+                txtInput.SelectionFont = new Font("Courier New", 12, FontStyle.Bold);
+            } 
+            else if (variable.Contains(currentWord))
+            {
+                txtInput.SelectionColor = Color.Red;
+                txtInput.SelectionFont = new Font("Courier New", 12, FontStyle.Bold);
+            }
+            else
+            {
+                txtInput.SelectionColor = Color.Black;
+                txtInput.SelectionFont = new Font("Courier New", 12, FontStyle.Regular);
+            }
         }
 
         private void btnUndo_Click(object sender, EventArgs e)
