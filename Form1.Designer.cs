@@ -60,8 +60,8 @@
             this.txtExeName = new System.Windows.Forms.TextBox();
             this.btnGenerate = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
-            this.txtInput = new System.Windows.Forms.TextBox();
-            this.txtOutput = new System.Windows.Forms.TextBox();
+            this.txtInput = new System.Windows.Forms.RichTextBox();
+            this.txtOutput = new System.Windows.Forms.RichTextBox();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -166,7 +166,7 @@
             // MenuAboutTeam
             // 
             this.MenuAboutTeam.Name = "MenuAboutTeam";
-            this.MenuAboutTeam.Size = new System.Drawing.Size(180, 22);
+            this.MenuAboutTeam.Size = new System.Drawing.Size(158, 22);
             this.MenuAboutTeam.Text = "About ST Group";
             this.MenuAboutTeam.Click += new System.EventHandler(this.MenuAboutTeam_Click);
             // 
@@ -358,20 +358,21 @@
             // 
             // txtInput
             // 
-            this.txtInput.Location = new System.Drawing.Point(15, 134);
-            this.txtInput.Multiline = true;
+            this.txtInput.Location = new System.Drawing.Point(12, 124);
             this.txtInput.Name = "txtInput";
-            this.txtInput.Size = new System.Drawing.Size(326, 357);
-            this.txtInput.TabIndex = 9;
+            this.txtInput.Size = new System.Drawing.Size(340, 367);
+            this.txtInput.TabIndex = 11;
+            this.txtInput.Text = "";
+            this.txtInput.SelectionChanged += new System.EventHandler(this.txtInput_SelectionChanged);
             this.txtInput.TextChanged += new System.EventHandler(this.txtInput_TextChanged);
             // 
             // txtOutput
             // 
-            this.txtOutput.Location = new System.Drawing.Point(358, 53);
-            this.txtOutput.Multiline = true;
+            this.txtOutput.Location = new System.Drawing.Point(358, 52);
             this.txtOutput.Name = "txtOutput";
-            this.txtOutput.Size = new System.Drawing.Size(328, 438);
-            this.txtOutput.TabIndex = 10;
+            this.txtOutput.Size = new System.Drawing.Size(328, 439);
+            this.txtOutput.TabIndex = 12;
+            this.txtOutput.Text = "";
             // 
             // Form1
             // 
@@ -438,9 +439,9 @@
         private System.Windows.Forms.TextBox txtExeName;
         private System.Windows.Forms.Button btnGenerate;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox txtInput;
-        private System.Windows.Forms.TextBox txtOutput;
         private System.Windows.Forms.ToolStripButton btnSave;
+        private System.Windows.Forms.RichTextBox txtInput;
+        private System.Windows.Forms.RichTextBox txtOutput;
     }
 }
 
