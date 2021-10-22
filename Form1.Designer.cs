@@ -365,7 +365,6 @@
             this.txtInput.TabIndex = 11;
             this.txtInput.Text = "";
             this.txtInput.WordWrap = false;
-            this.txtInput.SelectionChanged += new System.EventHandler(this.txtInput_SelectionChanged);
             this.txtInput.TextChanged += new System.EventHandler(this.txtInput_TextChanged);
             // 
             // txtOutput

@@ -56,6 +56,8 @@ namespace Formular_Specification
             init();
 
             txtLanguage.Text = "C#";
+
+            //MessageBox.Show(RemoveBracketMeaningless("((())()()((a = b)))"));
         }
 
         private void init()
@@ -81,6 +83,7 @@ namespace Formular_Specification
 
         private void btnGenerate_Click(object sender, EventArgs e)
         {
+            //MessageBox.Show(RemoveBracketMeaningless("((a = b))()"));
             //arrSentence = txtInput.Text.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
             string content = RemoveAllSpace(txtInput.Text);
             content = RemoveAllBreakLine(content);
@@ -108,9 +111,10 @@ namespace Formular_Specification
             //MessageBox.Show(arrSentence[1]);
             //indexLine3 + 4 => Lay noi dung dong 3 bo tu "Post"
             arrSentence[2] = content.Substring(indexLine3 + 4, content.Length - (indexLine3 + 4));
-            MessageBox.Show(arrSentence[2]);
+            //MessageBox.Show(arrSentence[2]);
 
-
+            //MessageBox.Show(FunctionExcute(arrSentence[2]));
+            FunctionExcute(arrSentence[2]);
         }
 
         private string RemoveAllBreakLine(string content)
@@ -132,6 +136,176 @@ namespace Formular_Specification
             {
                 content = content.Remove(SpaceIndex, 1);
                 SpaceIndex = content.IndexOf(" ", SpaceIndex);
+            }
+
+            return content;
+        }
+
+        private string FunctionExcute(string content)
+        {
+            string Func = "";
+            List<string> lstCondition = new List<string>();
+            content = RemoveBracketMeaningless(content);
+
+            while (content.Length != 0 )
+            {
+                //Sum = 0 => Number of bracket open and close are equal
+                //Sum < 0 => Number of bracket open more than close
+                //Sum > 0 => Number of bracket open less than close
+                int sum = 0;
+                int index = 0;
+                for (index = 0; index < content.Length; index++)
+                {
+                    if (content[index] == '(')
+                        sum += -1;
+                    else if (content[index] == ')')
+                        sum += 1;
+                    else if (sum == 0 && content[index] == '|')
+                        break;
+                }
+
+                lstCondition.Add(content.Substring(0, index));
+                if (index == content.Length)
+                    content = "";
+                else content = content.Remove(0, index + 2); //2 is length of '||'
+            }
+
+            //string s = "";
+            //foreach (string item in lstCondition)
+            //{
+            //    s += item + "\n";
+            //}
+            //MessageBox.Show(s);
+
+            //Xử lí tách từng điều kiện và giá trị trả về
+            for (int i = 0; i < lstCondition.Count; i++)
+            {
+                Func += CreateConditionCode(lstCondition[i]);
+                if (i != lstCondition.Count - 1)
+                    Func += "\n";
+            }
+
+            txtOutput.Text = Func;
+
+            return Func;
+        }
+
+        /// <summary>
+        /// Tiến hành tách phần giá trị trả về điều kiện, tạo câu if hoàn chỉnh
+        /// </summary>
+        /// <param name="item">Chuỗi chứa giá trị trả về và điều kiện</param>
+        /// <returns></returns>
+        private string CreateConditionCode(string item)
+        {
+            string condition = "";
+            //Tìm vị trí mà tại đó gán giá trị trả về
+            int ValueIndex = item.IndexOf("=");
+            //Cô mặc định đầu tiên luôn là giá trị trả về :))
+            //Nhưng đang rảnh làm cho thêm trường hợp
+            while (ValueIndex > 0 && ValueIndex < item.Length - 1 && (
+                !char.IsLetter(item[ValueIndex - 1]) && !char.IsDigit(item[ValueIndex - 1]) || //Kí tự trước đó phải là chữ hoặc số, không là dấu câu
+                item[ValueIndex + 1] == '=')) //Nếu kí tự sau là dấu = thì kết hợp ra == (phép so sánh) => loại
+            {
+                ValueIndex = item.IndexOf("=", ValueIndex + 1);
+            }
+            if (ValueIndex < 1) //Error
+                return "";
+
+            //Tìm vị trí bắt đầu của phần gán giá trị trả về 
+            int startIndex = ValueIndex;
+            while (startIndex >= 0)
+            {
+                if (item[startIndex] == '&' || item[startIndex] == '(')
+                {
+                    startIndex++;
+                    break;
+                }
+                else startIndex--; //Nếu chưa tìm được vị trí bắt đầu thì lùi lại tiếp
+            }
+            if (startIndex < 0)
+                startIndex = 0;
+
+            //Tìm vị trí kết thúc của phần gán giá trị trả về
+            int endIndex = ValueIndex;
+            while (endIndex < item.Length)
+            {
+                if (item[endIndex] == '&' || item[endIndex] == ')')
+                {
+                    endIndex--;
+                    break;
+                }
+                else endIndex++; //Nếu chưa tìm được vị trí bắt đầu thì tăng tiếp
+            }
+            if (endIndex == item.Length)
+                endIndex = item.Length - 1;
+
+            string sentenceReturn = item.Substring(startIndex, endIndex - startIndex + 1);
+
+            //Remove Example (kq=a)&&(a > 1) => (a > 1)
+            int andIndex = item.IndexOf("&&");
+            item = item.Remove(startIndex, endIndex - startIndex + 1);
+            if (andIndex != -1)
+            {
+                if (andIndex < ValueIndex)
+                {
+                    andIndex = item.LastIndexOf("&&");
+                    item = item.Remove(andIndex, 2); //Remove '&&'
+                } else
+                {
+                    andIndex = item.IndexOf("&&");
+                    item = item.Remove(andIndex, 2); //Remove '&&'
+                }
+            }
+            //item = item.Remove(startIndex, endIndex - startIndex + 1);
+            //item = item.Remove(andIndex, 2); //Remove '&&'
+            item = RemoveBracketMeaningless(item);
+
+            condition = "if (" + item + ")\n"
+                + "{\n\t" + sentenceReturn + ";\n}";
+            return condition;
+        }
+
+        /// <summary>
+        /// Remove meaningless bracket like this '()' 
+        /// Example: '(()&&(a = b))' => 'a = b'
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        private string RemoveBracketMeaningless(string content)
+        {
+            //Remove bracket '()'
+            int index = content.IndexOf("()");
+            while (index > 0)
+            {
+                content = content.Remove(index, 2);
+                index = content.IndexOf("()");
+            }
+
+            //Remove bracket head and tail
+            //'((a = b))' => 'a = b'
+            bool flag = true;
+            while(flag && content.Length > 1)
+            {
+                //Sum = 0 => Number of bracket open and close are equal
+                //Sum < 0 => Number of bracket open more than close
+                //Sum > 0 => Number of bracket open less than close
+                int sum = 0;
+                for (int i = 0; i < content.Length; i++)
+                {
+                    if (content[i] == '(')
+                        sum += -1;
+                    else if (content[i] == ')')
+                        sum += 1;
+                    if (sum == 0 && i != content.Length - 1) //Do not have head and tail redundant bracket
+                    {
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag)
+                {
+                    content = content.Substring(1, content.Length - 2);
+                }
             }
 
             return content;
@@ -174,8 +348,8 @@ namespace Formular_Specification
                     redo.Clear();
                     btnRedo.Enabled = false;
                 }
-                redo.Push(txtInput.Text);
-                redoCursor.Push(txtInput.SelectionStart);
+                //redo.Push(txtInput.Text);
+                //redoCursor.Push(txtInput.SelectionStart);
             }
             else
             {
@@ -186,6 +360,8 @@ namespace Formular_Specification
             LastInput = txtInput.Text;
             LastPosition = txtInput.SelectionStart;
         }
+
+        #region Syntax Highlight
 
         private void HighlightAllLine()
         {
@@ -208,17 +384,20 @@ namespace Formular_Specification
             string[] words = r.Split(line);
             foreach (string word in words)
             {
-                txtInput.SelectionStart = index;
-                txtInput.SelectionLength = word.Length;
+                
  
                 if (keywords.Contains(word))
                 {
                     //MessageBox.Show(word);
+                    txtInput.SelectionStart = index;
+                    txtInput.SelectionLength = word.Length;
                     txtInput.SelectionColor = Color.Blue;
                     txtInput.SelectionFont = new Font("Courier New", 12, FontStyle.Bold);
                 }
                 else if (variable.Contains(word))
                 {
+                    txtInput.SelectionStart = index;
+                    txtInput.SelectionLength = word.Length;
                     txtInput.SelectionColor = Color.Red;
                     txtInput.SelectionFont = new Font("Courier New", 12, FontStyle.Bold);
                 }
@@ -277,6 +456,10 @@ namespace Formular_Specification
             }
         }
 
+        #endregion
+
+        #region Menu Function
+
         private void btnUndo_Click(object sender, EventArgs e)
         {
             if (undo.Count == 0)
@@ -311,6 +494,7 @@ namespace Formular_Specification
 
             undo.Push(txtInput.Text);
             undoCursor.Push(txtInput.SelectionStart);
+            btnUndo.Enabled = true;
 
             txtInput.Text = content;
             txtInput.SelectionStart = position;
@@ -410,15 +594,12 @@ namespace Formular_Specification
             txtInput.Cut();
         }
 
-        private void txtInput_SelectionChanged(object sender, EventArgs e)
-        {
-
-        }
-
         private void MenuAboutTeam_Click(object sender, EventArgs e)
         {
             About about = new About();
             about.ShowDialog();
         }
+
+        #endregion
     }
 }
