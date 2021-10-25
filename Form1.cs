@@ -199,34 +199,13 @@ namespace Formular_Specification
         {
             string condition = "";
             //Tìm vị trí mà tại đó gán giá trị trả về
-            int ValueIndex = item.IndexOf("=");
-            //Cô mặc định đầu tiên luôn là giá trị trả về :))
-            //Nhưng đang rảnh làm cho thêm trường hợp
-            while (ValueIndex > 0 && ValueIndex < item.Length - 1 && (
-                !char.IsLetter(item[ValueIndex - 1]) && !char.IsDigit(item[ValueIndex - 1]) || //Kí tự trước đó phải là chữ hoặc số, không là dấu câu
-                item[ValueIndex + 1] == '=')) //Nếu kí tự sau là dấu = thì kết hợp ra == (phép so sánh) => loại
-            {
-                ValueIndex = item.IndexOf("=", ValueIndex + 1);
-            }
-            if (ValueIndex < 1) //Error
-                return "";
-
-            //Tìm vị trí bắt đầu của phần gán giá trị trả về 
-            int startIndex = ValueIndex;
-            while (startIndex >= 0)
-            {
-                if (item[startIndex] == '&' || item[startIndex] == '(')
-                {
-                    startIndex++;
-                    break;
-                }
-                else startIndex--; //Nếu chưa tìm được vị trí bắt đầu thì lùi lại tiếp
-            }
-            if (startIndex < 0)
-                startIndex = 0;
+            int resultStart = arrSentence[0].LastIndexOf(")");
+            int resultEnd = arrSentence[0].LastIndexOf(":");
+            int valueIndex = item.IndexOf(arrSentence[0].Substring(resultStart + 1, resultEnd - resultStart - 1));
+            int startIndex = item.IndexOf("=", valueIndex) + 1;
 
             //Tìm vị trí kết thúc của phần gán giá trị trả về
-            int endIndex = ValueIndex;
+            int endIndex = startIndex;
             while (endIndex < item.Length)
             {
                 if (item[endIndex] == '&' || item[endIndex] == ')')
@@ -243,10 +222,10 @@ namespace Formular_Specification
 
             //Remove Example (kq=a)&&(a > 1) => (a > 1)
             int andIndex = item.IndexOf("&&");
-            item = item.Remove(startIndex, endIndex - startIndex + 1);
+            item = item.Remove(valueIndex, endIndex - valueIndex + 1);
             if (andIndex != -1)
             {
-                if (andIndex < ValueIndex)
+                if (andIndex < startIndex)
                 {
                     andIndex = item.LastIndexOf("&&");
                     item = item.Remove(andIndex, 2); //Remove '&&'
@@ -259,9 +238,35 @@ namespace Formular_Specification
             //item = item.Remove(startIndex, endIndex - startIndex + 1);
             //item = item.Remove(andIndex, 2); //Remove '&&'
             item = RemoveBracketMeaningless(item);
+            item = insertEqual(item);
 
-            condition = "if (" + item + ")\n"
-                + "{\n\t" + sentenceReturn + ";\n}";
+            if (!string.IsNullOrEmpty(item))
+                condition = "if (" + item + ")\n"
+                    + "{\n\treturn " + sentenceReturn + ";\n}";
+            else condition = "return " + sentenceReturn + ";";
+            return condition;
+        }
+
+        /// <summary>
+        /// Insert '=' into condition only '='; 
+        /// Example: 'a = b' => 'a == b'
+        /// </summary>
+        /// <param name="condition">Sentence condition</param>
+        /// <returns>Condition affter insert '='</returns>
+        private string insertEqual(string condition)
+        {
+            int index = condition.IndexOf("=");
+            while (index > 0 && index < condition.Length - 1)
+            {
+                if ((char.IsDigit(condition[index - 1]) || char.IsLetter(condition[index - 1])) && condition[index + 1] != '=')
+                {
+                    condition = condition.Insert(index, "=");
+                    index++;
+                }
+
+                index = condition.IndexOf("=", index + 1);
+            }
+
             return condition;
         }
 
