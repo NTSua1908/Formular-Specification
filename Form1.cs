@@ -33,7 +33,7 @@ namespace Formular_Specification
         Stack<string> redo;
         Stack<int> redoCursor;
 
-        enum Language { CSharp, CPlusPlus };
+        enum Language { CSharp, Java };
         Language currentLanguage = Language.CSharp;
 
         bool isFileOpened;
@@ -114,7 +114,7 @@ namespace Formular_Specification
             //MessageBox.Show(arrSentence[2]);
 
             //MessageBox.Show(FunctionExcute(arrSentence[2]));
-            FunctionExcute(arrSentence[2]);
+            txtOutput.Text = FunctionExcute(arrSentence[2]);
         }
 
         private string RemoveAllBreakLine(string content)
@@ -143,11 +143,27 @@ namespace Formular_Specification
 
         private string FunctionExcute(string content)
         {
+
+
+            if (content.Contains("}."))
+                return ForFunction(content);
+            return IfFunction(content);
+            
+        }
+
+        /// <summary>
+        /// Type 1
+        /// </summary>
+        /// <param name="content">Condition</param>
+        /// <returns></returns>
+        private string IfFunction(string content)
+        {
             string Func = "";
             List<string> lstCondition = new List<string>();
             content = RemoveBracketMeaningless(content);
 
-            while (content.Length != 0 )
+            //cắt các điều kiện trong câu ra
+            while (content.Length != 0)
             {
                 //Sum = 0 => Number of bracket open and close are equal
                 //Sum < 0 => Number of bracket open more than close
@@ -191,7 +207,175 @@ namespace Formular_Specification
         }
 
         /// <summary>
-        /// Tiến hành tách phần giá trị trả về điều kiện, tạo câu if hoàn chỉnh
+        /// Type 2
+        /// </summary>
+        /// <param name="content">Condition</param>
+        /// <returns></returns>
+        private string ForFunction(string content)
+        {
+            string Func = "";
+            List<string> lstCondition = new List<string>();
+            List<string> lstVariable = new List<string>();
+
+            int index = content.IndexOf("=");
+            content = content.Remove(0, index + 1);
+            content = RemoveBracketMeaningless(content);
+
+            index = content.IndexOf("}.");
+            while (index > 0)
+            {
+                lstCondition.Add(content.Substring(0, index + 1));
+                content = content.Remove(0, index + 2); //2 is length of '}.'
+                index = content.IndexOf("}.");
+            }
+            lstCondition.Add(content);
+
+            //string s = "";
+            //foreach (string item in lstCondition)
+            //{
+            //    s += item + "\n";
+            //}
+            //MessageBox.Show(s);
+
+            //Tim ten bien do dai
+            index = arrSentence[0].LastIndexOf(")");
+            index = arrSentence[0].LastIndexOf(":", index);
+            int startIndex = arrSentence[0].LastIndexOf(",", index) + 1;
+            string length = arrSentence[0].Substring(startIndex, index - startIndex);
+            //Tim bien mang
+            index = arrSentence[0].LastIndexOf(":", startIndex);
+            startIndex = arrSentence[0].IndexOf("(") + 1;
+            string arr = arrSentence[0].Substring(startIndex, index - startIndex);
+
+            //Luu tru diem ket thuc cua vong for cuoi
+            string tail = "";
+
+            //Tao for
+            for (int i = 0; i < lstCondition.Count - 1; i++)
+            {
+                index = lstCondition[i].IndexOf("TH");
+                //Lay ten bien (i, j,...)
+                string variable = lstCondition[i].Substring(2, index - 2);
+                lstVariable.Add(variable);
+
+                //Tim phan dau va cuoi cua for
+                index = lstCondition[i].IndexOf("..");
+                int bracket = lstCondition[i].IndexOf("{") + 1; //Vi tri sau dau ngoac {
+                string head = lstCondition[i].Substring(bracket, index - bracket); //Phan dau cua for
+                bracket = lstCondition[i].IndexOf("}"); //Vi tri dau ngoac }
+                tail = lstCondition[i].Substring(index + 2, bracket - (index + 2)); //Phan duoi cua for //2 is length of '..'
+
+                
+
+                if (head.Contains(length))
+                    Func += "for (int " + variable + " = " + head + "; " + variable + " >= " + tail + "; " + variable + "--)\n";
+                else Func += "for (int " + variable + " = " + head + "; " + variable + " <= " + tail + "; " + variable + "++)\n";
+
+                //Chinh tab
+                for (int j = 0; j < i; j++)
+                {
+                    Func += "\t";
+                }
+                Func += "{\n";
+                for (int j = 0; j <= i; j++)
+                {
+                    Func += "\t";
+                }
+            }
+            string condition = RemoveBracketMeaningless(lstCondition[lstCondition.Count - 1]);
+
+            //Thay the 'a(i)' => 'a[i]'
+            index = condition.IndexOf(arr + "(");
+            while (index != -1)
+            {
+                condition = condition.Remove(index + arr.Length, 1);
+                condition = condition.Insert(index + arr.Length, "[");
+
+                int bracketCount = -1; //Thieu mot dau ngoac dong tu vi tri hien tai
+                for (int i = index + 2; i < condition.Length; i++) //2 is length of 'a['
+                {
+                    if (condition[i] == '(')
+                        bracketCount--;
+                    else if (condition[i] == ')')
+                        bracketCount++;
+                    if (bracketCount == 0)
+                    {
+                        condition = condition.Remove(i, 1);
+                        condition = condition.Insert(i, "]");
+                        break;
+                    }
+                }
+                index = condition.IndexOf(arr + "(");
+            }
+
+            condition = insertEqual(condition);
+
+            // VM VM hoac VM
+            if (lstCondition.Count == 2 && lstCondition[0].Contains("VM")//Chi co 1 for
+                || lstCondition.Count == 3 && lstCondition[0].Contains("VM") && lstCondition[1].Contains("VM")) //Co 2 for  va ca 2 deu la Voi Moi
+            {
+                Func += "if (!" + condition + "){\n";
+                for (int i = 0; i < lstCondition.Count; i++)
+                {
+                    Func += "\t";
+                }
+                Func += "return false;\n";
+                for (int i = 0; i < lstCondition.Count-1; i++)
+                {
+                    Func += "\t";
+                }
+                if (lstCondition.Count == 3)
+                    Func += "}\n\t}\n}\nreturn true;";
+                else Func += "}\n}\nreturn true;";
+            } //TT TT hoac TT
+            else if (lstCondition.Count == 2 && lstCondition[0].Contains("TT")//Chi co 1 for
+                || lstCondition.Count == 3 && lstCondition[0].Contains("TT") && lstCondition[1].Contains("TT")) //Co 2 for  va ca 2 deu la Ton Tai
+            {
+                Func += "if (" + condition + "){\n";
+                for (int i = 0; i < lstCondition.Count; i++)
+                {
+                    Func += "\t";
+                }
+                Func += "return true;\n";
+                for (int i = 0; i < lstCondition.Count - 1; i++)
+                {
+                    Func += "\t";
+                }
+                if (lstCondition.Count == 3)
+                    Func += "}\n\t}\n}\nreturn false;";
+                else Func += "}\n}\nreturn false;";
+            }
+            else if (lstCondition.Count == 3 && lstCondition[0].Contains("VM") && lstCondition[1].Contains("TT")) //Co 2 for va MV TT
+            {
+                Func += "if (" + condition + "){" +
+                    "\n\t\t\treturn break;" +
+                    "\n\t\tif (" + lstVariable[lstVariable.Count - 1] +" == " + tail +"){" +
+                    "\n\t\t\treturn false;" +
+                    "\n\t\t}\n\t" +
+                    "}\n" +
+                    "}\n" +
+                    "return true;";
+            }
+            else if (lstCondition.Count == 3 && lstCondition[0].Contains("TT") && lstCondition[1].Contains("VM")) //Co 2 for va TT MV
+            {
+                Func += "if (!" + condition + "){" +
+                    "\n\t\t\treturn break;" +
+                    "\n\t\tif (" + lstVariable[lstVariable.Count - 1] + " == " + tail + "){" +
+                    "\n\t\t\treturn true;" +
+                    "\n\t\t}\n\t" +
+                    "}\n" +
+                    "}\n" +
+                    "return false;";
+            }
+
+            return Func;
+        }
+
+
+        
+
+        /// <summary>
+        /// Tiến hành tách phần giá trị trả về điều kiện, tạo câu if hoàn chỉnh (Type 1)
         /// </summary>
         /// <param name="item">Chuỗi chứa giá trị trả về và điều kiện</param>
         /// <returns></returns>
@@ -258,7 +442,9 @@ namespace Formular_Specification
             int index = condition.IndexOf("=");
             while (index > 0 && index < condition.Length - 1)
             {
-                if ((char.IsDigit(condition[index - 1]) || char.IsLetter(condition[index - 1])) && condition[index + 1] != '=')
+                //if ((char.IsDigit(condition[index - 1]) || char.IsLetter(condition[index - 1]) || condition[index - 1] == '_') && condition[index + 1] != '=')
+                if (condition[index - 1] != '>' && condition[index - 1] != '<' && condition[index - 1] != '!'
+                    && condition[index - 1] != '=' && condition[index + 1] != '=')
                 {
                     condition = condition.Insert(index, "=");
                     index++;
@@ -518,8 +704,8 @@ namespace Formular_Specification
 
         private void btnCPlusPlus_Click(object sender, EventArgs e)
         {
-            txtLanguage.Text = "C++";
-            currentLanguage = Language.CPlusPlus;
+            txtLanguage.Text = "Java";
+            currentLanguage = Language.Java;
         }
 
         private void btnNew_Click(object sender, EventArgs e)
