@@ -285,8 +285,8 @@
             this.btnCPlusPlus.Image = ((System.Drawing.Image)(resources.GetObject("btnCPlusPlus.Image")));
             this.btnCPlusPlus.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnCPlusPlus.Name = "btnCPlusPlus";
-            this.btnCPlusPlus.Size = new System.Drawing.Size(35, 22);
-            this.btnCPlusPlus.Text = "C++";
+            this.btnCPlusPlus.Size = new System.Drawing.Size(33, 22);
+            this.btnCPlusPlus.Text = "Java";
             this.btnCPlusPlus.Click += new System.EventHandler(this.btnCPlusPlus_Click);
             // 
             // statusStrip1
@@ -365,7 +365,6 @@
             this.txtInput.TabIndex = 11;
             this.txtInput.Text = "";
             this.txtInput.WordWrap = false;
-            this.txtInput.SelectionChanged += new System.EventHandler(this.txtInput_SelectionChanged);
             this.txtInput.TextChanged += new System.EventHandler(this.txtInput_TextChanged);
             // 
             // txtOutput
