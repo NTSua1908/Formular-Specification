@@ -112,16 +112,13 @@ namespace Formular_Specification
             //MessageBox.Show(arrSentence[1]);
             //indexLine3 + 4 => Lay noi dung dong 3 bo tu "Post"
             arrSentence[2] = content.Substring(indexLine3 + 4, content.Length - (indexLine3 + 4));
-<<<<<<< HEAD
             //MessageBox.Show(arrSentence[0]);
             //MessageBox.Show(arrSentence[2]);
             ConvertInputLine(arrSentence[0]);
-=======
             //MessageBox.Show(arrSentence[2]);
->>>>>>> 7bfd5d4260904ed3de9d5c5bd4ee177d1c150ec5
 
             //MessageBox.Show(FunctionExcute(arrSentence[2]));
-            txtOutput.Text = FunctionExcute(arrSentence[2]);
+            txtOutput.Text += FunctionExcute(arrSentence[2]);
         }
 
         private string RemoveAllBreakLine(string content)
@@ -148,7 +145,6 @@ namespace Formular_Specification
             return content;
         }
 
-<<<<<<< HEAD
         void GenerateInput(string content, int input)
         {
             String[] arr = new string [6];
@@ -273,7 +269,8 @@ namespace Formular_Specification
 
             MessageBox.Show(arr[2]);
             GenerateInput(arr[2],Count);
-=======
+        }
+        
         private string FunctionExcute(string content)
         {
 
@@ -633,7 +630,6 @@ namespace Formular_Specification
             }
 
             return content;
->>>>>>> 7bfd5d4260904ed3de9d5c5bd4ee177d1c150ec5
         }
 
         private void txtInput_TextChanged(object sender, EventArgs e)
