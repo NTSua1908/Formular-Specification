@@ -112,17 +112,8 @@ namespace Formular_Specification
             //MessageBox.Show(arrSentence[1]);
             //indexLine3 + 4 => Lay noi dung dong 3 bo tu "Post"
             arrSentence[2] = content.Substring(indexLine3 + 4, content.Length - (indexLine3 + 4));
-<<<<<<< HEAD
-
+            
             ConvertInputLine(arrSentence[0]);
-=======
-            //MessageBox.Show(arrSentence[0]);
-            //MessageBox.Show(arrSentence[2]);
-            ConvertInputLine(arrSentence[0]);
-            //MessageBox.Show(arrSentence[2]);
-
-            //MessageBox.Show(FunctionExcute(arrSentence[2]));
->>>>>>> 7380c7aec986d5549ebfcf9d6c2c2a4de8bc2757
             txtOutput.Text += FunctionExcute(arrSentence[2]);
         }
 
@@ -281,14 +272,9 @@ namespace Formular_Specification
             }
 
             MessageBox.Show(arr[2]);
-<<<<<<< HEAD
             GenerateInput(arr[2], Count);
         }
-=======
-            GenerateInput(arr[2],Count);
-        }
         
->>>>>>> 7380c7aec986d5549ebfcf9d6c2c2a4de8bc2757
         private string FunctionExcute(string content)
         {
             if (content.Contains("}."))
