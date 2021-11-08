@@ -60,6 +60,7 @@ namespace Formular_Specification
 
         private void init()
         {
+            txtOutput.Text = "";
             txtInput.Text = "";
             LastInput = "";
             LastPosition = 0;
@@ -93,7 +94,7 @@ namespace Formular_Specification
             if (indexLine2 < 0) 
                 return;
             //Dong dau tien se duoc luu tai vi tri 0
-            arrSentence[0] = content.Substring(0, indexLine2 - 1);
+            arrSentence[0] = content.Substring(0, indexLine2);
             //MessageBox.Show(arrSentence[0]);
 
             int indexLine3 = content.IndexOf("Post");
@@ -108,8 +109,9 @@ namespace Formular_Specification
             //MessageBox.Show(arrSentence[1]);
             //indexLine3 + 4 => Lay noi dung dong 3 bo tu "Post"
             arrSentence[2] = content.Substring(indexLine3 + 4, content.Length - (indexLine3 + 4));
-            MessageBox.Show(arrSentence[2]);
-
+            //MessageBox.Show(arrSentence[0]);
+            //MessageBox.Show(arrSentence[2]);
+            ConvertInputLine(arrSentence[0]);
 
         }
 
@@ -135,6 +137,132 @@ namespace Formular_Specification
             }
 
             return content;
+        }
+
+        void GenerateInput(string content, int input)
+        {
+            String[] arr = new string [6];
+            String[] Input = new string[100];
+            int count = 0;
+            int TwoDot = content.IndexOf(":");         
+
+            while (TwoDot >= 0) //Đưa biến vào mảng
+            {
+                //Kiểm tra có nhiều biến
+                if (content.Contains(","))
+                {
+                    int lastindex = content.IndexOf(","); //tìm vị trí dấu ,
+                    Input[count] = content.Substring(0, lastindex ); //lưu giá trị từ trước dấu ,
+                    content = content.Remove(0, lastindex + 1); //xoá đến dấu ,
+                }
+                else //chỉ có 1 biến 
+                { 
+                    Input[count] = content.Substring(0);
+                    content = content.Remove(TwoDot, 1);
+                }
+
+                TwoDot = content.IndexOf(":", TwoDot);
+                count++;
+            }
+
+            Array.Resize(ref Input, count);
+
+            arr[0] = arr[1] = arr[2] = arr[3]= arr[4]= arr[5]="";
+            for (int i = 0; i < Input.Length; i++)  //Chuyển sang code
+            {
+                int twodot = Input[i].IndexOf(":");
+                string value = Input[i].Substring(0, twodot);
+
+                if (!Input[i].Contains("*"))
+                {
+                    if (Input[i].Contains("R") || Input[i].Contains("N") || Input[i].Contains("Z"))
+                    {
+                        if (arr[1] == "")
+                        {
+                            arr[1] += "int " + value ;
+                        }
+                        else arr[1] += "," + value;
+                        if (input > 0)
+                        {
+                            arr[4] += "Console.Write(Vui long nhap vao gia tri " + value + ": );\n" 
+                                + value + "=Int32.Parse(Console.Readline());\n";
+                        }
+
+                    }
+                    else if (Input[i].Contains("Q"))
+                    {
+                        if (arr[2] == "")
+                        {
+                            arr[2] += "float " + value;
+                        }
+                        else arr[2] += "," + value;
+                    }
+                    else if (Input[i].Contains("B"))
+                    {
+                        if (arr[3] == "")
+                        {
+                            arr[3] += "boolean " + value;
+                        }
+                        else arr[3] += "," + value;
+                    }
+                    if (i == Input.Length - 1)
+                    {
+                        if (arr[1] != "") arr[1] += ";" + "\n";
+                        if (arr[2] != "") arr[2] += ";" + "\n";
+                        if (arr[3] != "") arr[3] += ";" + "\n";
+                    }
+                    input--;
+                }
+                else if (Input[i].Contains("*"))
+                {
+                    arr[5] += "Console.Write(Vui long nhap vao so phan tu cua mang " + value +": );\n"
+                        +"int n = Int32.Parse.Console.Readline();\n";
+                    if (Input[i].Contains("R") || Input[i].Contains("N") || Input[i].Contains("Z"))
+                    {
+                        arr[5] += "int[] " + value + " = new int[" + "n" + "];\n"
+                        + "for (int i=0;i<n;i++)\n" + "{ \n" + "\tConsole.Write(Nhap phan tu vao mang: );\n" +
+                            "\t" + value + "[i]" + "=Int32.Parse(Console.Readline());\n}\n";
+                    }
+                    else if (Input[i].Contains("Q"))
+                    {
+                        arr[5] += "float[] " + value + " = new float[" + "n" + "];\n"
+                            + "for (int i=0;i<n;i++)\n" + "{ \n" + "\tConsole.Write(Nhap phan tu vao mang: );\n" +
+                            "\t" + value + "[i]" + "=float.Parse(Console.Readline());\n}\n";
+                    }
+                    input--;
+                }
+            }
+
+            arr[0] = "using System;\nusing System.Collections.Generic;\nusing System.ComponentModel;\n" +
+                "using System.Data;\nusing System.Drawing;\nusing System.IO;\nusing System.Linq;\nusing System.Text;\n" +
+                "using System.Text.RegularExpressions;\nusing System.Threading.Tasks;\nusing System.Windows.Forms;\n";
+
+            txtOutput.Text = arr[0] + arr[1] + arr[2] + arr[3] + arr[4] + arr[5];
+        }
+
+        private void ConvertInputLine(string content)
+        {
+            RemoveAllSpace(content);
+            String[] arr = new string[3];
+            int indexInput = content.IndexOf("(");
+            int indexOutput = content.IndexOf(")");
+
+            arr[0] = content.Substring(indexInput+1, indexOutput - indexInput - 1); //input
+            arr[1] = content.Substring(indexOutput+1); //ouput
+            arr[2] = arr[0] + "," + arr[1];
+
+            int TwoDot = arr[1].IndexOf(":");
+            int Count = 0;
+
+            while (TwoDot >= 0) //Đếm số lượng biến đầu vào
+            {
+                Count++;
+                arr[0] = arr[0].Remove(TwoDot, 1);
+                TwoDot = arr[0].IndexOf(":", TwoDot);
+            }
+
+            MessageBox.Show(arr[2]);
+            GenerateInput(arr[2],Count);
         }
 
         private void txtInput_TextChanged(object sender, EventArgs e)
