@@ -112,16 +112,9 @@ namespace Formular_Specification
             //MessageBox.Show(arrSentence[1]);
             //indexLine3 + 4 => Lay noi dung dong 3 bo tu "Post"
             arrSentence[2] = content.Substring(indexLine3 + 4, content.Length - (indexLine3 + 4));
-<<<<<<< HEAD
-            //MessageBox.Show(arrSentence[0]);
-            //MessageBox.Show(arrSentence[2]);
-            ConvertInputLine(arrSentence[0]);
-=======
-            //MessageBox.Show(arrSentence[2]);
->>>>>>> 7bfd5d4260904ed3de9d5c5bd4ee177d1c150ec5
 
-            //MessageBox.Show(FunctionExcute(arrSentence[2]));
-            txtOutput.Text = FunctionExcute(arrSentence[2]);
+            ConvertInputLine(arrSentence[0]);
+            txtOutput.Text += FunctionExcute(arrSentence[2]);
         }
 
         private string RemoveAllBreakLine(string content)
@@ -148,7 +141,6 @@ namespace Formular_Specification
             return content;
         }
 
-<<<<<<< HEAD
         void GenerateInput(string content, int input)
         {
             String[] arr = new string [6];
@@ -171,7 +163,7 @@ namespace Formular_Specification
                     content = content.Remove(TwoDot, 1);
                 }
 
-                TwoDot = content.IndexOf(":", TwoDot);
+                TwoDot = content.IndexOf(":", TwoDot); //cập nhật lại vị trí dấu :
                 count++;
             }
 
@@ -183,7 +175,7 @@ namespace Formular_Specification
                 int twodot = Input[i].IndexOf(":");
                 string value = Input[i].Substring(0, twodot);
 
-                if (!Input[i].Contains("*"))
+                if (!Input[i].Contains("*")) //Biến loại 1
                 {
                     if (Input[i].Contains("R") || Input[i].Contains("N") || Input[i].Contains("Z"))
                     {
@@ -206,6 +198,11 @@ namespace Formular_Specification
                             arr[2] += "float " + value;
                         }
                         else arr[2] += "," + value;
+                        if (input > 0)
+                        {
+                            arr[4] += "Console.Write(Vui long nhap vao gia tri " + value + ": );\n"
+                                + value + "=Int32.Parse(Console.Readline());\n";
+                        }
                     }
                     else if (Input[i].Contains("B"))
                     {
@@ -223,10 +220,13 @@ namespace Formular_Specification
                     }
                     input--;
                 }
-                else if (Input[i].Contains("*"))
+                else if (Input[i].Contains("*")) //biến loại 2
                 {
+                    //nhap so luong phan tu co trong mang
                     arr[5] += "Console.Write(Vui long nhap vao so phan tu cua mang " + value +": );\n"
                         +"int n = Int32.Parse.Console.Readline();\n";
+
+            
                     if (Input[i].Contains("R") || Input[i].Contains("N") || Input[i].Contains("Z"))
                     {
                         arr[5] += "int[] " + value + " = new int[" + "n" + "];\n"
@@ -257,8 +257,8 @@ namespace Formular_Specification
             int indexInput = content.IndexOf("(");
             int indexOutput = content.IndexOf(")");
 
-            arr[0] = content.Substring(indexInput+1, indexOutput - indexInput - 1); //input
-            arr[1] = content.Substring(indexOutput+1); //ouput
+            arr[0] = content.Substring(indexInput + 1, indexOutput - indexInput - 1); //input
+            arr[1] = content.Substring(indexOutput + 1); //ouput
             arr[2] = arr[0] + "," + arr[1];
 
             int TwoDot = arr[1].IndexOf(":");
@@ -272,12 +272,10 @@ namespace Formular_Specification
             }
 
             MessageBox.Show(arr[2]);
-            GenerateInput(arr[2],Count);
-=======
+            GenerateInput(arr[2], Count);
+        }
         private string FunctionExcute(string content)
         {
-
-
             if (content.Contains("}."))
                 return ForFunction(content);
             return IfFunction(content);
@@ -633,7 +631,6 @@ namespace Formular_Specification
             }
 
             return content;
->>>>>>> 7bfd5d4260904ed3de9d5c5bd4ee177d1c150ec5
         }
 
         private void txtInput_TextChanged(object sender, EventArgs e)
