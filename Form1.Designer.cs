@@ -41,6 +41,7 @@
             this.MenuRedo = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuAboutTeam = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnEnviroment = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.btnNew = new System.Windows.Forms.ToolStripButton();
             this.btnOpen = new System.Windows.Forms.ToolStripButton();
@@ -158,17 +159,25 @@
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.MenuAboutTeam});
+            this.MenuAboutTeam,
+            this.btnEnviroment});
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(52, 20);
-            this.aboutToolStripMenuItem.Text = "About";
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
+            this.aboutToolStripMenuItem.Text = "More";
             // 
             // MenuAboutTeam
             // 
             this.MenuAboutTeam.Name = "MenuAboutTeam";
-            this.MenuAboutTeam.Size = new System.Drawing.Size(158, 22);
+            this.MenuAboutTeam.Size = new System.Drawing.Size(180, 22);
             this.MenuAboutTeam.Text = "About ST Group";
             this.MenuAboutTeam.Click += new System.EventHandler(this.MenuAboutTeam_Click);
+            // 
+            // btnEnviroment
+            // 
+            this.btnEnviroment.Name = "btnEnviroment";
+            this.btnEnviroment.Size = new System.Drawing.Size(180, 22);
+            this.btnEnviroment.Text = "Environment";
+            this.btnEnviroment.Click += new System.EventHandler(this.btnEnviroment_Click);
             // 
             // toolStrip1
             // 
@@ -285,8 +294,8 @@
             this.btnCPlusPlus.Image = ((System.Drawing.Image)(resources.GetObject("btnCPlusPlus.Image")));
             this.btnCPlusPlus.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnCPlusPlus.Name = "btnCPlusPlus";
-            this.btnCPlusPlus.Size = new System.Drawing.Size(33, 22);
-            this.btnCPlusPlus.Text = "Java";
+            this.btnCPlusPlus.Size = new System.Drawing.Size(35, 22);
+            this.btnCPlusPlus.Text = "C++";
             this.btnCPlusPlus.Click += new System.EventHandler(this.btnCPlusPlus_Click);
             // 
             // statusStrip1
@@ -322,6 +331,7 @@
             this.btnBuild.TabIndex = 4;
             this.btnBuild.Text = "Build Solution";
             this.btnBuild.UseVisualStyleBackColor = true;
+            this.btnBuild.Click += new System.EventHandler(this.btnBuild_Click);
             // 
             // txtClassName
             // 
@@ -444,6 +454,7 @@
         private System.Windows.Forms.ToolStripButton btnSave;
         private System.Windows.Forms.RichTextBox txtInput;
         private System.Windows.Forms.RichTextBox txtOutput;
+        private System.Windows.Forms.ToolStripMenuItem btnEnviroment;
     }
 }
 

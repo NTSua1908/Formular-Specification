@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -9,6 +8,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 
 namespace Formular_Specification
 {
@@ -33,7 +34,9 @@ namespace Formular_Specification
         Stack<string> redo;
         Stack<int> redoCursor;
 
-        enum Language { CSharp, Java };
+        string CSharpPath, CppPath;
+
+        enum Language { CSharp, CPlusPlus };
         Language currentLanguage = Language.CSharp;
 
         bool isFileOpened;
@@ -56,6 +59,7 @@ namespace Formular_Specification
             init();
 
             txtLanguage.Text = "C#";
+            ReadPath();
 
             //MessageBox.Show(RemoveBracketMeaningless("((())()()((a = b)))"));
         }
@@ -65,6 +69,9 @@ namespace Formular_Specification
             txtInput.Text = "";
             LastInput = "";
             LastPosition = 0;
+
+            //AllocConsole();
+            //Console.WriteLine("abc");
 
             undo = new Stack<string>();
             undoCursor = new Stack<int>();
@@ -80,6 +87,100 @@ namespace Formular_Specification
             isRedo = false;
             isFileOpened = false;
         }
+
+        private void ReadPath()
+        {
+            if (File.Exists(Application.StartupPath + "\\Path.pat"))
+            {
+                string[] path = File.ReadAllLines(Application.StartupPath + "\\Path.pat");
+                CppPath = path[0];
+                CSharpPath = path[1];
+            } else
+            {
+                CSharpPath = getCSharpPath();
+                CppPath = "C:\\MinGW\\bin";
+                File.WriteAllText(Application.StartupPath + "\\Path.pat", CppPath + "\n" + CSharpPath);
+            }
+        }
+
+        #region Built Code
+
+        private void btnBuild_Click(object sender, EventArgs e)
+        {
+            //Luu code vao file text
+
+            //runcode
+            //RunCSharp("phanso");
+            RunCPP("Input");
+            //RunCPP("HelloWorld");
+            //RunJava("HelloWorld");
+            //RunJava("Input");
+
+            //RunMyJavaApp("-i=\"test.txt\" -o=\"test_output.txt\"");
+            //SW.Close();
+        }
+
+
+        void RunCPP(string filename)
+        {
+            using (CmdService cmdService = new CmdService("cmd.exe"))
+            {
+                string consoleCommand, output;
+
+                consoleCommand = "path=%path%;" + CppPath;
+                cmdService.ExecuteCommand(consoleCommand);
+                consoleCommand = "g++ " + filename + ".cpp -o " + filename;
+                cmdService.ExecuteCommand(consoleCommand);
+                consoleCommand = filename + ".exe";
+                string path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                Process.Start(path + "\\" + consoleCommand);
+            }
+        }
+
+        void RunCSharp(string filename)
+        {
+            CmdService cmdService = new CmdService("cmd.exe");
+
+            string path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            string consoleCommand, output;
+
+            consoleCommand = "path=%path%;" + CSharpPath + "abc";
+            output = cmdService.ExecuteCommand(consoleCommand);
+            //Console.WriteLine(output);
+            consoleCommand = "csc " + filename + ".cs";
+            output = cmdService.ExecuteCommand(consoleCommand);
+            //Console.WriteLine(output + "\n>>>");
+
+            consoleCommand = filename + ".exe";
+
+            Process.Start(path + "\\" + consoleCommand);
+            //Process process = Process.Start(path + "\\" + consoleCommand);
+            //int id = process.Id;
+            //Process tempProc = Process.GetProcessById(id);
+            //this.Visible = false;
+            //tempProc.WaitForExit();
+            //this.Visible = true;
+
+            //CmdService cmdService2 = new CmdService("cmd.exe");
+            //output = cmdService.ExecuteCommand(consoleCommand);
+            //Console.WriteLine(output);
+
+        }
+
+        private string getCSharpPath()
+        {
+            if (!Directory.Exists(@"C:\Windows\Microsoft.NET\Framework"))
+                return "";
+
+            string[] folders = Directory.GetDirectories(@"C:\Windows\Microsoft.NET\Framework",
+                "v*", SearchOption.AllDirectories);
+
+            if (folders.Length > 0)
+                return folders[folders.Length - 1];
+
+            return "";
+        }
+        #endregion
 
         private void btnGenerate_Click(object sender, EventArgs e)
         {
@@ -704,8 +805,8 @@ namespace Formular_Specification
 
         private void btnCPlusPlus_Click(object sender, EventArgs e)
         {
-            txtLanguage.Text = "Java";
-            currentLanguage = Language.Java;
+            txtLanguage.Text = "C++";
+            currentLanguage = Language.CPlusPlus;
         }
 
         private void btnNew_Click(object sender, EventArgs e)
@@ -780,6 +881,13 @@ namespace Formular_Specification
             txtInput.Paste();
         }
 
+        private void btnEnviroment_Click(object sender, EventArgs e)
+        {
+            CompilerEnvironment environment = new CompilerEnvironment();
+            environment.ShowDialog();
+            ReadPath();
+        }
+
         private void btnCut_Click(object sender, EventArgs e)
         {
             txtInput.Cut();
@@ -792,5 +900,6 @@ namespace Formular_Specification
         }
 
         #endregion
+        
     }
 }
