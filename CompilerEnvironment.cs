@@ -17,11 +17,9 @@ namespace Formular_Specification
         {
             InitializeComponent();
 
-            if (File.Exists(Application.StartupPath + "\\Path.pat"))
+            if (File.Exists(Application.StartupPath + "\\JDK.path"))
             {
-                string[] path = File.ReadAllLines(Application.StartupPath + "\\Path.pat");
-                txtCppPath.Text = path[0];
-                txtCsPath.Text = path[1];
+                txtJavaPath.Text = File.ReadAllText(Application.StartupPath + "\\JDK.path");
             }
         }
 
@@ -32,24 +30,22 @@ namespace Formular_Specification
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            File.WriteAllText(Application.StartupPath +"\\Path.pat",txtCppPath.Text + "\n" + txtCsPath.Text);
+            File.WriteAllText(Application.StartupPath + "\\JDK.path", txtJavaPath.Text);
         }
 
-        private void btnCPP_Click(object sender, EventArgs e)
+        private void btnBrowse_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog dialog = new FolderBrowserDialog();
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                txtCppPath.Text = dialog.SelectedPath;
-            }
-        }
-
-        private void btnCS_Click(object sender, EventArgs e)
-        {
-            FolderBrowserDialog dialog = new FolderBrowserDialog();
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                txtCsPath.Text = dialog.SelectedPath;
+                if (File.Exists(dialog.SelectedPath+"\\javac.exe"))
+                {
+                    txtJavaPath.Text = dialog.SelectedPath;
+                }
+                else {
+                    MessageBox.Show("Đường dẫn không hợp lệ", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                
             }
         }
     }

@@ -4,12 +4,10 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
+using Microsoft.CSharp;
+using System.CodeDom.Compiler;
 
 namespace Formular_Specification
 {
@@ -34,9 +32,9 @@ namespace Formular_Specification
         Stack<string> redo;
         Stack<int> redoCursor;
 
-        string CSharpPath, CppPath;
+        string JavaPath;
 
-        enum Language { CSharp, CPlusPlus };
+        enum Language { CSharp, Java };
         Language currentLanguage = Language.CSharp;
 
         bool isFileOpened;
@@ -91,16 +89,13 @@ namespace Formular_Specification
 
         private void ReadPath()
         {
-            if (File.Exists(Application.StartupPath + "\\Path.pat"))
+            if (File.Exists(Application.StartupPath + "\\JDK.path"))
             {
-                string[] path = File.ReadAllLines(Application.StartupPath + "\\Path.pat");
-                CppPath = path[0];
-                CSharpPath = path[1];
+                JavaPath = File.ReadAllText(Application.StartupPath + "JDK.path");
             } else
             {
-                CSharpPath = getCSharpPath();
-                CppPath = "C:\\MinGW\\bin";
-                File.WriteAllText(Application.StartupPath + "\\Path.pat", CppPath + "\n" + CSharpPath);
+                JavaPath = getJavaPath();
+                File.WriteAllText(Application.StartupPath + "\\JDK.path", JavaPath);
             }
         }
 
@@ -112,75 +107,88 @@ namespace Formular_Specification
 
             //runcode
             //RunCSharp("phanso");
-            RunCPP("Input");
+            //RunCPP("Input");
             //RunCPP("HelloWorld");
             //RunJava("HelloWorld");
             //RunJava("Input");
-
-            //RunMyJavaApp("-i=\"test.txt\" -o=\"test_output.txt\"");
-            //SW.Close();
+            if (currentLanguage == Language.Java)
+                RunJava("Input");
+            else RunCSharp("phanso");
         }
 
+        
 
-        void RunCPP(string filename)
+        void RunJava(string filename)
         {
-            using (CmdService cmdService = new CmdService("cmd.exe"))
-            {
-                string consoleCommand, output;
+            string text = "path =%path%;" + getJavaPath() + "@javac Input.java@java Input@pause";
+            text = text.Replace("@", System.Environment.NewLine);
+            File.WriteAllText(Application.StartupPath + "\\Run.bat", text);
 
-                consoleCommand = "path=%path%;" + CppPath;
-                cmdService.ExecuteCommand(consoleCommand);
-                consoleCommand = "g++ " + filename + ".cpp -o " + filename;
-                cmdService.ExecuteCommand(consoleCommand);
-                consoleCommand = filename + ".exe";
-                string path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                Process.Start(path + "\\" + consoleCommand);
+            Process proc = null;
+            try
+            {
+                proc = new Process();
+                proc.StartInfo.FileName = Application.StartupPath + "\\Run.bat";
+                proc.StartInfo.CreateNoWindow = false;
+                proc.Start();
+                proc.WaitForExit();
             }
+            catch { }
         }
 
         void RunCSharp(string filename)
         {
-            CmdService cmdService = new CmdService("cmd.exe");
+            
+            CSharpCodeProvider codeProvider = new CSharpCodeProvider();
+            ICodeCompiler icc = codeProvider.CreateCompiler();
+            //string Output = txtExeName + ".exe";
+            string Output = "Output.exe";
 
-            string path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            string consoleCommand, output;
+            string output = "";
+            System.CodeDom.Compiler.CompilerParameters parameters = new CompilerParameters();
+            //Make sure we generate an EXE, not a DLL
+            parameters.GenerateExecutable = true;
+            parameters.OutputAssembly = Output;
+            CompilerResults results = icc.CompileAssemblyFromSource(parameters, File.ReadAllText(@"D:\University\Junior\HK1\Formular Specification\Formular-Specification\bin\Debug\phanso.cs"));
 
-            consoleCommand = "path=%path%;" + CSharpPath + "abc";
-            output = cmdService.ExecuteCommand(consoleCommand);
-            //Console.WriteLine(output);
-            consoleCommand = "csc " + filename + ".cs";
-            output = cmdService.ExecuteCommand(consoleCommand);
-            //Console.WriteLine(output + "\n>>>");
-
-            consoleCommand = filename + ".exe";
-
-            Process.Start(path + "\\" + consoleCommand);
-            //Process process = Process.Start(path + "\\" + consoleCommand);
-            //int id = process.Id;
-            //Process tempProc = Process.GetProcessById(id);
-            //this.Visible = false;
-            //tempProc.WaitForExit();
-            //this.Visible = true;
-
-            //CmdService cmdService2 = new CmdService("cmd.exe");
-            //output = cmdService.ExecuteCommand(consoleCommand);
-            //Console.WriteLine(output);
-
+            if (results.Errors.Count > 0)
+            {
+                foreach (CompilerError CompErr in results.Errors)
+                {
+                    output = output +
+                                "Line number " + CompErr.Line +
+                                ", Error Number: " + CompErr.ErrorNumber +
+                                ", '" + CompErr.ErrorText + ";" +
+                                Environment.NewLine + Environment.NewLine;
+                }
+                MessageBox.Show(output);
+            }
+            else
+            {
+                //Successful Compile
+                Process.Start(Output);
+            }
         }
 
-        private string getCSharpPath()
+        string getJavaPath()
         {
-            if (!Directory.Exists(@"C:\Windows\Microsoft.NET\Framework"))
+            if (!Directory.Exists(@"C:\Program Files\Java"))
                 return "";
 
-            string[] folders = Directory.GetDirectories(@"C:\Windows\Microsoft.NET\Framework",
-                "v*", SearchOption.AllDirectories);
+            string[] folders = Directory.GetDirectories(@"C:\Program Files\Java\",
+                "*", SearchOption.AllDirectories);
 
-            if (folders.Length > 0)
-                return folders[folders.Length - 1];
+
+
+            foreach (string item in folders)
+            {
+                if (item.Contains("jdk"))
+                    return item + "\\bin";
+            }
 
             return "";
         }
+
         #endregion
 
         private void btnGenerate_Click(object sender, EventArgs e)
@@ -937,8 +945,8 @@ namespace Formular_Specification
 
         private void btnCPlusPlus_Click(object sender, EventArgs e)
         {
-            txtLanguage.Text = "C++";
-            currentLanguage = Language.CPlusPlus;
+            txtLanguage.Text = "Java";
+            currentLanguage = Language.Java;
         }
 
         private void btnNew_Click(object sender, EventArgs e)

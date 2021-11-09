@@ -168,14 +168,14 @@
             // MenuAboutTeam
             // 
             this.MenuAboutTeam.Name = "MenuAboutTeam";
-            this.MenuAboutTeam.Size = new System.Drawing.Size(180, 22);
+            this.MenuAboutTeam.Size = new System.Drawing.Size(158, 22);
             this.MenuAboutTeam.Text = "About ST Group";
             this.MenuAboutTeam.Click += new System.EventHandler(this.MenuAboutTeam_Click);
             // 
             // btnEnviroment
             // 
             this.btnEnviroment.Name = "btnEnviroment";
-            this.btnEnviroment.Size = new System.Drawing.Size(180, 22);
+            this.btnEnviroment.Size = new System.Drawing.Size(158, 22);
             this.btnEnviroment.Text = "Environment";
             this.btnEnviroment.Click += new System.EventHandler(this.btnEnviroment_Click);
             // 
@@ -294,8 +294,8 @@
             this.btnCPlusPlus.Image = ((System.Drawing.Image)(resources.GetObject("btnCPlusPlus.Image")));
             this.btnCPlusPlus.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnCPlusPlus.Name = "btnCPlusPlus";
-            this.btnCPlusPlus.Size = new System.Drawing.Size(35, 22);
-            this.btnCPlusPlus.Text = "C++";
+            this.btnCPlusPlus.Size = new System.Drawing.Size(33, 22);
+            this.btnCPlusPlus.Text = "Java";
             this.btnCPlusPlus.Click += new System.EventHandler(this.btnCPlusPlus_Click);
             // 
             // statusStrip1
