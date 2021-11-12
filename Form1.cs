@@ -26,6 +26,11 @@ namespace Formular_Specification
         string[] variable = { "N", "R", "B", "char"};
         //string[] Calculation = { "+", "-", "*", "/", "%", ">", "<", "=", "!=", ">=", "<=", "!", "&&", "||"};
 
+        string[] codeKeywords = { "using", "namespace", "class", "static", "if", "for", 
+            "return", "void", "public", "private", "protected", "float", "int", "Int32","bool", 
+            "string", "Console" };
+        string[] function = { "Write", "WriteLine", "Parse", "Readline"};
+
         Stack<string> undo;
         Stack<int> undoCursor;
 
@@ -58,7 +63,7 @@ namespace Formular_Specification
 
             txtLanguage.Text = "C#";
             ReadPath();
-
+            txtOutput.BackColor = txtOutput.BackColor;
             //MessageBox.Show(RemoveBracketMeaningless("((())()()((a = b)))"));
         }
 
@@ -91,11 +96,14 @@ namespace Formular_Specification
         {
             if (File.Exists(Application.StartupPath + "\\JDK.path"))
             {
-                JavaPath = File.ReadAllText(Application.StartupPath + "JDK.path");
+                JavaPath = File.ReadAllText(Application.StartupPath + "\\JDK.path");
             } else
             {
                 JavaPath = getJavaPath();
-                File.WriteAllText(Application.StartupPath + "\\JDK.path", JavaPath);
+                if (!string.IsNullOrEmpty(JavaPath))
+                    File.WriteAllText(Application.StartupPath + "\\JDK.path", JavaPath);
+                else MessageBox.Show("Can't file Java JDK\nGo to More -> Enviroment to set JDK path",
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -106,13 +114,8 @@ namespace Formular_Specification
             //Luu code vao file text
 
             //runcode
-            //RunCSharp("phanso");
-            //RunCPP("Input");
-            //RunCPP("HelloWorld");
-            //RunJava("HelloWorld");
-            //RunJava("Input");
             if (currentLanguage == Language.Java)
-                RunJava("Input");
+                RunJava("Input"); 
             else RunCSharp("phanso");
         }
 
@@ -178,8 +181,6 @@ namespace Formular_Specification
             string[] folders = Directory.GetDirectories(@"C:\Program Files\Java\",
                 "*", SearchOption.AllDirectories);
 
-
-
             foreach (string item in folders)
             {
                 if (item.Contains("jdk"))
@@ -224,6 +225,7 @@ namespace Formular_Specification
             
             ConvertInputLine(arrSentence[0]);
             txtOutput.Text += FunctionExcute(arrSentence[2]);
+            HighlightAllCode();
         }
 
         private string RemoveAllBreakLine(string content)
@@ -380,7 +382,7 @@ namespace Formular_Specification
                 TwoDot = arr[0].IndexOf(":", TwoDot);
             }
 
-            MessageBox.Show(arr[2]);
+            //MessageBox.Show(arr[2]);
             GenerateInput(arr[2], Count);
         }
         
@@ -838,6 +840,57 @@ namespace Formular_Specification
             }
         }
 
+        #region
+        private void HighlightAllCode()
+        {
+            Regex r = new Regex("\\n");
+            string[] lines = r.Split(txtOutput.Text);
+
+            int index = 0;
+            foreach (string line in lines)
+            {
+                HighLightCode(line, index);
+                index = index + line.Length + 1;
+            }
+        }
+
+        private void HighLightCode(string line, int startPositon)
+        {
+            Regex r = new Regex("([ \\t{}();,:.><=*])");
+            int index = startPositon;
+            //Cat dong hien tai ra thanh cac tu rieng biet de so sanh voi keyword
+            string[] words = r.Split(line);
+            foreach (string word in words)
+            {
+                if (codeKeywords.Contains(word))
+                {
+                    //MessageBox.Show(word);
+                    txtOutput.SelectionStart = index;
+                    txtOutput.SelectionLength = word.Length;
+                    txtOutput.SelectionColor = Color.Blue;
+                    txtOutput.SelectionFont = new Font("Courier New", 11.25f, FontStyle.Bold);
+                }
+                else if (function.Contains(word))
+                {
+                    //MessageBox.Show(word); 
+                    txtOutput.SelectionStart = index;
+                    txtOutput.SelectionLength = word.Length;
+                    txtOutput.SelectionColor = Color.BlueViolet;
+                    txtOutput.SelectionFont = new Font("Courier New", 11.25f);
+                }
+                else if (txtClassName.Text.Equals(word))
+                {
+                    txtOutput.SelectionStart = index;
+                    txtOutput.SelectionLength = word.Length;
+                    txtOutput.SelectionColor = Color.Brown;
+                    txtOutput.SelectionFont = new Font("Courier New", 11.25f, FontStyle.Bold);
+                }
+
+                index += word.Length;
+            }
+        }
+        #endregion
+
         private void HighlightCurrentWord()
         {
             //Tìm vị trí bắt đầu của tu đang xét
@@ -945,6 +998,12 @@ namespace Formular_Specification
 
         private void btnCPlusPlus_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrEmpty(JavaPath))
+            {
+                MessageBox.Show("Can't file Java JDK\nGo to More -> Enviroment to set JDK path",
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             txtLanguage.Text = "Java";
             currentLanguage = Language.Java;
         }

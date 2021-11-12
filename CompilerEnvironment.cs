@@ -38,12 +38,13 @@ namespace Formular_Specification
             FolderBrowserDialog dialog = new FolderBrowserDialog();
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                if (File.Exists(dialog.SelectedPath+"\\javac.exe"))
+                if (File.Exists(dialog.SelectedPath+"\\javac.exe") && File.Exists(dialog.SelectedPath + "\\java.exe"))
                 {
                     txtJavaPath.Text = dialog.SelectedPath;
+                    File.WriteAllText(Application.StartupPath + "\\JDK.path", txtJavaPath.Text);
                 }
                 else {
-                    MessageBox.Show("Đường dẫn không hợp lệ", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Invalid Path", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 
             }

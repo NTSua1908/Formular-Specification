@@ -168,14 +168,14 @@
             // MenuAboutTeam
             // 
             this.MenuAboutTeam.Name = "MenuAboutTeam";
-            this.MenuAboutTeam.Size = new System.Drawing.Size(158, 22);
+            this.MenuAboutTeam.Size = new System.Drawing.Size(180, 22);
             this.MenuAboutTeam.Text = "About ST Group";
             this.MenuAboutTeam.Click += new System.EventHandler(this.MenuAboutTeam_Click);
             // 
             // btnEnviroment
             // 
             this.btnEnviroment.Name = "btnEnviroment";
-            this.btnEnviroment.Size = new System.Drawing.Size(158, 22);
+            this.btnEnviroment.Size = new System.Drawing.Size(180, 22);
             this.btnEnviroment.Text = "Environment";
             this.btnEnviroment.Click += new System.EventHandler(this.btnEnviroment_Click);
             // 
@@ -379,9 +379,12 @@
             // 
             // txtOutput
             // 
+            this.txtOutput.BackColor = System.Drawing.SystemColors.Info;
             this.txtOutput.Font = new System.Drawing.Font("Courier New", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtOutput.ForeColor = System.Drawing.SystemColors.WindowText;
             this.txtOutput.Location = new System.Drawing.Point(358, 52);
             this.txtOutput.Name = "txtOutput";
+            this.txtOutput.ReadOnly = true;
             this.txtOutput.Size = new System.Drawing.Size(413, 439);
             this.txtOutput.TabIndex = 12;
             this.txtOutput.Text = "";
