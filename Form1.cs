@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.CSharp;
+using System.CodeDom.Compiler;
 
 namespace Formular_Specification
 {
@@ -28,11 +27,18 @@ namespace Formular_Specification
         string[] variable = { "N", "R", "B", "char"};
         //string[] Calculation = { "+", "-", "*", "/", "%", ">", "<", "=", "!=", ">=", "<=", "!", "&&", "||"};
 
+        string[] codeKeywords = { "using", "namespace", "class", "static", "if", "for", 
+            "return", "void", "public", "private", "protected", "float", "int", "Int32","bool", 
+            "string", "Console" };
+        string[] function = { "Write", "WriteLine", "Parse", "Readline"};
+
         Stack<string> undo;
         Stack<int> undoCursor;
 
         Stack<string> redo;
         Stack<int> redoCursor;
+
+        string JavaPath;
 
         enum Language { CSharp, Java };
         Language currentLanguage = Language.CSharp;
@@ -57,7 +63,8 @@ namespace Formular_Specification
             init();
 
             txtLanguage.Text = "C#";
-
+            ReadPath();
+            txtOutput.BackColor = txtOutput.BackColor;
             //MessageBox.Show(RemoveBracketMeaningless("((())()()((a = b)))"));
         }
 
@@ -67,6 +74,9 @@ namespace Formular_Specification
             txtInput.Text = "";
             LastInput = "";
             LastPosition = 0;
+
+            //AllocConsole();
+            //Console.WriteLine("abc");
 
             undo = new Stack<string>();
             undoCursor = new Stack<int>();
@@ -82,6 +92,106 @@ namespace Formular_Specification
             isRedo = false;
             isFileOpened = false;
         }
+
+        private void ReadPath()
+        {
+            if (File.Exists(Application.StartupPath + "\\JDK.path"))
+            {
+                JavaPath = File.ReadAllText(Application.StartupPath + "\\JDK.path");
+            } else
+            {
+                JavaPath = getJavaPath();
+                if (!string.IsNullOrEmpty(JavaPath))
+                    File.WriteAllText(Application.StartupPath + "\\JDK.path", JavaPath);
+                else MessageBox.Show("Can't file Java JDK\nGo to More -> Enviroment to set JDK path",
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        #region Built Code
+
+        private void btnBuild_Click(object sender, EventArgs e)
+        {
+            //Luu code vao file text
+
+            //runcode
+            if (currentLanguage == Language.Java)
+                RunJava("Input"); 
+            else RunCSharp("phanso");
+        }
+
+        
+
+        void RunJava(string filename)
+        {
+            string text = "path =%path%;" + getJavaPath() + "@javac Input.java@java Input@pause";
+            text = text.Replace("@", System.Environment.NewLine);
+            File.WriteAllText(Application.StartupPath + "\\Run.bat", text);
+
+            Process proc = null;
+            try
+            {
+                proc = new Process();
+                proc.StartInfo.FileName = Application.StartupPath + "\\Run.bat";
+                proc.StartInfo.CreateNoWindow = false;
+                proc.Start();
+                proc.WaitForExit();
+            }
+            catch { }
+        }
+
+        void RunCSharp(string filename)
+        {
+            
+            CSharpCodeProvider codeProvider = new CSharpCodeProvider();
+            ICodeCompiler icc = codeProvider.CreateCompiler();
+            //string Output = txtExeName + ".exe";
+            string Output = "Output.exe";
+
+            string output = "";
+            System.CodeDom.Compiler.CompilerParameters parameters = new CompilerParameters();
+            //Make sure we generate an EXE, not a DLL
+            parameters.GenerateExecutable = true;
+            parameters.OutputAssembly = Output;
+            CompilerResults results = icc.CompileAssemblyFromSource(parameters, File.ReadAllText(@"D:\University\Junior\HK1\Formular Specification\Formular-Specification\bin\Debug\phanso.cs"));
+
+            if (results.Errors.Count > 0)
+            {
+                foreach (CompilerError CompErr in results.Errors)
+                {
+                    output = output +
+                                "Line number " + CompErr.Line +
+                                ", Error Number: " + CompErr.ErrorNumber +
+                                ", '" + CompErr.ErrorText + ";" +
+                                Environment.NewLine + Environment.NewLine;
+                }
+                MessageBox.Show(output);
+            }
+            else
+            {
+                //Successful Compile
+                Process.Start(Output);
+            }
+        }
+
+        string getJavaPath()
+        {
+            if (!Directory.Exists(@"C:\Program Files\Java"))
+                return "";
+
+            string[] folders = Directory.GetDirectories(@"C:\Program Files\Java\",
+                "*", SearchOption.AllDirectories);
+
+            foreach (string item in folders)
+            {
+                if (item.Contains("jdk"))
+                    return item + "\\bin";
+            }
+
+            return "";
+        }
+
+        #endregion
 
         private void btnGenerate_Click(object sender, EventArgs e)
         {
@@ -115,6 +225,7 @@ namespace Formular_Specification
             //MessageBox.Show(arrSentence[1]);
             //indexLine3 + 4 => Lay noi dung dong 3 bo tu "Post"
             arrSentence[2] = content.Substring(indexLine3 + 4, content.Length - (indexLine3 + 4));
+<<<<<<< HEAD
 
             //Xử lý input
             int indexInput = arrSentence[0].IndexOf("(");  
@@ -141,6 +252,12 @@ namespace Formular_Specification
                 + GenerateMain(OutputVariable,MainInputCode, FunctionName,InputFunctioncall, PreFunctionCall,FunctionalCall, OutputFunctionCall);
             //GeneratePre(arrSentence[1], arrSentence[2]);
             //txtOutput.Text += FunctionExcute(arrSentence[2]);
+=======
+            
+            ConvertInputLine(arrSentence[0]);
+            txtOutput.Text += FunctionExcute(arrSentence[2]);
+            HighlightAllCode();
+>>>>>>> 80648667ced217d9fd0d2f3ac635b3a33437fd8a
         }
 
         private string RemoveAllBreakLine(string content)
@@ -745,6 +862,7 @@ namespace Formular_Specification
                 code += FunctionExcute(content) + "\n\t\t}\n";
             }
 
+<<<<<<< HEAD
             return code;
         }
 
@@ -767,6 +885,12 @@ namespace Formular_Specification
             return code;
         }
 
+=======
+            //MessageBox.Show(arr[2]);
+            GenerateInput(arr[2], Count);
+        }
+        
+>>>>>>> 80648667ced217d9fd0d2f3ac635b3a33437fd8a
         private string FunctionExcute(string content)
         {
             if (content.Contains("}."))
@@ -1218,6 +1342,57 @@ namespace Formular_Specification
             }
         }
 
+        #region
+        private void HighlightAllCode()
+        {
+            Regex r = new Regex("\\n");
+            string[] lines = r.Split(txtOutput.Text);
+
+            int index = 0;
+            foreach (string line in lines)
+            {
+                HighLightCode(line, index);
+                index = index + line.Length + 1;
+            }
+        }
+
+        private void HighLightCode(string line, int startPositon)
+        {
+            Regex r = new Regex("([ \\t{}();,:.><=*])");
+            int index = startPositon;
+            //Cat dong hien tai ra thanh cac tu rieng biet de so sanh voi keyword
+            string[] words = r.Split(line);
+            foreach (string word in words)
+            {
+                if (codeKeywords.Contains(word))
+                {
+                    //MessageBox.Show(word);
+                    txtOutput.SelectionStart = index;
+                    txtOutput.SelectionLength = word.Length;
+                    txtOutput.SelectionColor = Color.Blue;
+                    txtOutput.SelectionFont = new Font("Courier New", 11.25f, FontStyle.Bold);
+                }
+                else if (function.Contains(word))
+                {
+                    //MessageBox.Show(word); 
+                    txtOutput.SelectionStart = index;
+                    txtOutput.SelectionLength = word.Length;
+                    txtOutput.SelectionColor = Color.BlueViolet;
+                    txtOutput.SelectionFont = new Font("Courier New", 11.25f);
+                }
+                else if (txtClassName.Text.Equals(word))
+                {
+                    txtOutput.SelectionStart = index;
+                    txtOutput.SelectionLength = word.Length;
+                    txtOutput.SelectionColor = Color.Brown;
+                    txtOutput.SelectionFont = new Font("Courier New", 11.25f, FontStyle.Bold);
+                }
+
+                index += word.Length;
+            }
+        }
+        #endregion
+
         private void HighlightCurrentWord()
         {
             //Tìm vị trí bắt đầu của tu đang xét
@@ -1325,6 +1500,12 @@ namespace Formular_Specification
 
         private void btnCPlusPlus_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrEmpty(JavaPath))
+            {
+                MessageBox.Show("Can't file Java JDK\nGo to More -> Enviroment to set JDK path",
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             txtLanguage.Text = "Java";
             currentLanguage = Language.Java;
         }
@@ -1401,6 +1582,13 @@ namespace Formular_Specification
             txtInput.Paste();
         }
 
+        private void btnEnviroment_Click(object sender, EventArgs e)
+        {
+            CompilerEnvironment environment = new CompilerEnvironment();
+            environment.ShowDialog();
+            ReadPath();
+        }
+
         private void btnCut_Click(object sender, EventArgs e)
         {
             txtInput.Cut();
@@ -1420,5 +1608,6 @@ namespace Formular_Specification
         }
 
         #endregion
+        
     }
 }
