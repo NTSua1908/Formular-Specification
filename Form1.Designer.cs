@@ -163,22 +163,15 @@
             this.MenuAboutTeam,
             this.btnEnviroment});
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-<<<<<<< HEAD
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(64, 24);
             this.aboutToolStripMenuItem.Text = "About";
-=======
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
             this.aboutToolStripMenuItem.Text = "More";
->>>>>>> 80648667ced217d9fd0d2f3ac635b3a33437fd8a
             // 
             // MenuAboutTeam
             // 
             this.MenuAboutTeam.Name = "MenuAboutTeam";
-<<<<<<< HEAD
             this.MenuAboutTeam.Size = new System.Drawing.Size(198, 26);
-=======
-            this.MenuAboutTeam.Size = new System.Drawing.Size(180, 22);
->>>>>>> 80648667ced217d9fd0d2f3ac635b3a33437fd8a
             this.MenuAboutTeam.Text = "About ST Group";
             this.MenuAboutTeam.Click += new System.EventHandler(this.MenuAboutTeam_Click);
             // 
@@ -399,21 +392,14 @@
             // 
             // txtOutput
             // 
-<<<<<<< HEAD
-            this.txtOutput.Font = new System.Drawing.Font("Courier New", 10F);
-            this.txtOutput.Location = new System.Drawing.Point(477, 64);
             this.txtOutput.Margin = new System.Windows.Forms.Padding(4);
-            this.txtOutput.Name = "txtOutput";
             this.txtOutput.Size = new System.Drawing.Size(682, 539);
-=======
             this.txtOutput.BackColor = System.Drawing.SystemColors.Info;
             this.txtOutput.Font = new System.Drawing.Font("Courier New", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtOutput.ForeColor = System.Drawing.SystemColors.WindowText;
             this.txtOutput.Location = new System.Drawing.Point(358, 52);
             this.txtOutput.Name = "txtOutput";
             this.txtOutput.ReadOnly = true;
-            this.txtOutput.Size = new System.Drawing.Size(413, 439);
->>>>>>> 80648667ced217d9fd0d2f3ac635b3a33437fd8a
             this.txtOutput.TabIndex = 12;
             this.txtOutput.Text = "";
             // 

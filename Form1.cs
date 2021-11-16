@@ -113,11 +113,11 @@ namespace Formular_Specification
         private void btnBuild_Click(object sender, EventArgs e)
         {
             //Luu code vao file text
-
+            File.WriteAllText(FunctionName + ".cs", txtOutput.Text);
             //runcode
             if (currentLanguage == Language.Java)
                 RunJava("Input"); 
-            else RunCSharp("phanso");
+            else RunCSharp(FunctionName +".cs");
         }
 
         
@@ -153,8 +153,8 @@ namespace Formular_Specification
             //Make sure we generate an EXE, not a DLL
             parameters.GenerateExecutable = true;
             parameters.OutputAssembly = Output;
-            CompilerResults results = icc.CompileAssemblyFromSource(parameters, File.ReadAllText(@"D:\University\Junior\HK1\Formular Specification\Formular-Specification\bin\Debug\phanso.cs"));
-
+            //CompilerResults results = icc.CompileAssemblyFromSource(parameters, File.ReadAllText(@"D:\University\Junior\HK1\Formular Specification\Formular-Specification\bin\Debug\phanso.cs"));
+            CompilerResults results = icc.CompileAssemblyFromSource(parameters, File.ReadAllText(@"D:\dự án\Năm 3\Đặc tả hình thức\Formular-Specification\bin\Debug\"+filename));
             if (results.Errors.Count > 0)
             {
                 foreach (CompilerError CompErr in results.Errors)
@@ -225,7 +225,6 @@ namespace Formular_Specification
             //MessageBox.Show(arrSentence[1]);
             //indexLine3 + 4 => Lay noi dung dong 3 bo tu "Post"
             arrSentence[2] = content.Substring(indexLine3 + 4, content.Length - (indexLine3 + 4));
-<<<<<<< HEAD
 
             //Xử lý input
             int indexInput = arrSentence[0].IndexOf("(");  
@@ -239,25 +238,19 @@ namespace Formular_Specification
             string FunctionCall = "";  //tham số truyền vào
 
             //hiển thị lên màn hình kết quả
-            txtOutput.Text = "using System;\n" + "namespace FomularSpecification\n"+"{\n" +"\tpublic class "+ FunctionName+"\n\t{\n";
+            txtOutput.Text = "using System;\n using System.IO;\n using System.Text;\n" + "namespace FomularSpecification\n"+"{\n" +"\tpublic class "+ FunctionName+"\n\t{\n";
             txtOutput.Text += GenerateInput(InputVariable, OutputVariable, FunctionName, ref param, ref MainInputCode, ref InputFunctioncall, ref FunctionCall);
 
             //Đặt tên hàm
             string OutputFunctionCall = "Xuat_"+FunctionName;  //hàm xuất
-            string PreFunctionCall = "Kiemtra_"+FunctionName+"("+FunctionCall;    //Hàm điều kiện
-            string FunctionalCall = FunctionName+"("+FunctionCall;    //Hàm xử lý
+            string PreFunctionCall = "KiemTra_"+FunctionName+"("+FunctionCall;    //Hàm điều kiện
+            string FunctionalCall = "Func_"+FunctionName+"("+FunctionCall;    //Hàm xử lý
 
             txtOutput.Text+= GenerateOutput(OutputVariable,FunctionName)+ GeneratePre(arrSentence[1], FunctionName, param) 
                 + GenerateFunction(arrSentence[2],OutputVariable, FunctionName, param)  
                 + GenerateMain(OutputVariable,MainInputCode, FunctionName,InputFunctioncall, PreFunctionCall,FunctionalCall, OutputFunctionCall);
-            //GeneratePre(arrSentence[1], arrSentence[2]);
-            //txtOutput.Text += FunctionExcute(arrSentence[2]);
-=======
-            
-            ConvertInputLine(arrSentence[0]);
-            txtOutput.Text += FunctionExcute(arrSentence[2]);
+
             HighlightAllCode();
->>>>>>> 80648667ced217d9fd0d2f3ac635b3a33437fd8a
         }
 
         private string RemoveAllBreakLine(string content)
@@ -392,7 +385,7 @@ namespace Formular_Specification
                                 FunctionCall += ivalue + ",";
                                 HamNhap += "ref int " + ivalue + ",";
                                 param += "int " + ivalue + ",";
-                                Code += "\t\t\tConsole.WriteLine(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
+                                Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
                                     + ivalue + "=Int32.Parse(Console.ReadLine());\n";
                             }
                         }
@@ -412,7 +405,7 @@ namespace Formular_Specification
                                 FunctionCall += ivalue + ",";
                                 HamNhap += "ref float " + ivalue + ",";
                                 param += "float " + ivalue + ",";
-                                Code += "\t\t\tConsole.WriteLine(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
+                                Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
                                     + ivalue + "=float.Parse(Console.ReadLine());\n";
                             }
                         }
@@ -513,14 +506,14 @@ namespace Formular_Specification
                                 arr[0] += "," + ivalue + " = 0";
                             }
 
-                            Code += "\t\t\tConsole.WriteLine(\"Nhap so phan tu cua mang " + jvalue + ": \");\n"
+                            Code += "\t\t\tConsole.Write(\"Nhap so phan tu cua mang " + jvalue + ": \");\n"
                                 + "\t\t\tint " + ivalue + " = Int32.Parse.Console.ReadLine();\n";
                             if (jtype.Contains("N") || jtype.Contains("Z"))
                             {
                                 arr[3] += "\t\t\tint[] "+jvalue+" = new int [100];\n";
                                 Code += "\t\t\tint[] " + jvalue + " = new int[" + ivalue + "];\n"
                                 + "\t\t\tfor (int i=0;i<" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
-                                "\t\t\t\tConsole.WriteLine(\"Nhap phan tu vao mang: \");\n" +
+                                "\t\t\t\tConsole.Write(\"Nhap phan tu vao mang: \");\n" +
                                     "\t\t\t\t" + jvalue + "[i]" + "=Int32.Parse(Console.ReadLine());\n\t\t\t}\n";
                                 if (input > 0)
                                 {
@@ -535,7 +528,7 @@ namespace Formular_Specification
                                 arr[3] += "\t\t\tfloat[] " + jvalue + " = new float [100];\n";
                                 Code += "\t\t\tfloat[] " + jvalue + " = new float[" + ivalue + "];\n"
                                     + "\t\t\tfor (int i=0;i<" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
-                                    "\t\t\t\tConsole.WriteLine(\"Nhap phan tu vao mang: \");\n" +
+                                    "\t\t\t\tConsole.Write(\"Nhap phan tu vao mang: \");\n" +
                                     "\t\t\t\t" + jvalue + "[i]" + "=float.Parse(Console.ReadLine());\n\t\t\t}\n";
                                 if (input > 0)
                                 {
@@ -776,12 +769,12 @@ namespace Formular_Specification
                 if (type.Contains("N") || type.Contains("Z"))
                 {
                     code += "( int " + value + " )";
-                    code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}," + value + "\");\n\t\t}\n";
+                    code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}\"," + value + ");\n\t\t}\n";
                 }
                 if (type.Contains("R") || type.Contains("Q"))
                 {
                     code += "( float " + value + " )";
-                    code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}," + value + "\");\n\t\t}\n";
+                    code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}\"," + value + ");\n\t\t}\n";
                 }
                 if (type.Contains("B"))
                 {
@@ -841,28 +834,27 @@ namespace Formular_Specification
             {
                 if (type.Contains("N") || type.Contains("Z"))
                 {
-                    code = "\n\t\tpublic int " + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                    code = "\n\t\tpublic int Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
                     code += FunctionExcute(content) + "\n\t\t}\n";
                 }
                 else if (type.Contains("R") || type.Contains("Q"))
                 {
-                    code = "\n\t\tpublic float " + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                    code = "\n\t\tpublic float Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
                     code += FunctionExcute(content) + "\n\t\t}\n";
                 }
                 else if (type.Contains("B"))
                 {
-                    code = "\n\t\tpublic bool " + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                    code = "\n\t\tpublic bool Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
                     code += FunctionExcute(content) + "\n\t\t}\n";
                 }
             }
 
             else if (type.Contains("*"))
             {
-                code = "\n\t\tpublic int " + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                code = "\n\t\tpublic int Func" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
                 code += FunctionExcute(content) + "\n\t\t}\n";
             }
 
-<<<<<<< HEAD
             return code;
         }
 
@@ -877,20 +869,14 @@ namespace Formular_Specification
                 + "\t\t\tif(p." + PreFunctionalCall + "==1)\n" 
                 + "\t\t\t{\n" +"\t\t\t\t"+Value +"=p."+FunctionalCall+";\n"
                 + "\t\t\t\tp."+OutputFunctionCall+"("+Value+");\n" + "\t\t\t}\n"
-                + "\t\t\telse Console.Writeline(\"Thong tin nhap khong hop le\");\n"
-                + "\n\t\t\tConsole.Readline();\n"
+                + "\t\t\telse Console.WriteLine(\"Thong tin nhap khong hop le\");\n"
+                + "\n\t\t\tConsole.ReadLine();\n"
                 + "\t\t}\n"
                 + "\t}\n}";
             
             return code;
         }
 
-=======
-            //MessageBox.Show(arr[2]);
-            GenerateInput(arr[2], Count);
-        }
-        
->>>>>>> 80648667ced217d9fd0d2f3ac635b3a33437fd8a
         private string FunctionExcute(string content)
         {
             if (content.Contains("}."))
@@ -1594,13 +1580,6 @@ namespace Formular_Specification
             txtInput.Cut();
         }
 
-        private void btnBuild_Click(object sender, EventArgs e)
-        {
-            File.WriteAllText(FunctionName + ".cs", txtOutput.Text);
-
-            string a = File.ReadAllText(FunctionName + ".cs");
-            MessageBox.Show(a);
-        }
         private void MenuAboutTeam_Click(object sender, EventArgs e)
         {
             About about = new About();
