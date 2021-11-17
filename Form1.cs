@@ -1095,7 +1095,7 @@ namespace Formular_Specification
                     int startIndex = Func.LastIndexOf("return");
                     int endIndex = Func.LastIndexOf(";");
                     string finalReturn = Func.Substring(startIndex, endIndex - startIndex);
-                    Func += finalReturn + ";";
+                    Func += "\t\t\t" + finalReturn + ";";
                 }
             }
 
