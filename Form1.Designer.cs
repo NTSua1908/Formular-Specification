@@ -77,7 +77,7 @@
             this.aboutToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1172, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(1408, 28);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -163,9 +163,7 @@
             this.MenuAboutTeam,
             this.btnEnviroment});
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(64, 24);
-            this.aboutToolStripMenuItem.Text = "About";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(58, 24);
             this.aboutToolStripMenuItem.Text = "More";
             // 
             // MenuAboutTeam
@@ -178,7 +176,7 @@
             // btnEnviroment
             // 
             this.btnEnviroment.Name = "btnEnviroment";
-            this.btnEnviroment.Size = new System.Drawing.Size(180, 22);
+            this.btnEnviroment.Size = new System.Drawing.Size(198, 26);
             this.btnEnviroment.Text = "Environment";
             this.btnEnviroment.Click += new System.EventHandler(this.btnEnviroment_Click);
             // 
@@ -198,7 +196,7 @@
             this.btnCPlusPlus});
             this.toolStrip1.Location = new System.Drawing.Point(0, 28);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1172, 27);
+            this.toolStrip1.Size = new System.Drawing.Size(1408, 27);
             this.toolStrip1.TabIndex = 1;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -310,7 +308,7 @@
             this.statusStrip1.Location = new System.Drawing.Point(0, 609);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 19, 0);
-            this.statusStrip1.Size = new System.Drawing.Size(1172, 26);
+            this.statusStrip1.Size = new System.Drawing.Size(1408, 26);
             this.statusStrip1.TabIndex = 2;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -392,14 +390,14 @@
             // 
             // txtOutput
             // 
-            this.txtOutput.Margin = new System.Windows.Forms.Padding(4);
-            this.txtOutput.Size = new System.Drawing.Size(682, 539);
             this.txtOutput.BackColor = System.Drawing.SystemColors.Info;
             this.txtOutput.Font = new System.Drawing.Font("Courier New", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtOutput.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.txtOutput.Location = new System.Drawing.Point(358, 52);
+            this.txtOutput.Location = new System.Drawing.Point(490, 59);
+            this.txtOutput.Margin = new System.Windows.Forms.Padding(4);
             this.txtOutput.Name = "txtOutput";
             this.txtOutput.ReadOnly = true;
+            this.txtOutput.Size = new System.Drawing.Size(905, 539);
             this.txtOutput.TabIndex = 12;
             this.txtOutput.Text = "";
             // 
@@ -407,7 +405,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1172, 635);
+            this.ClientSize = new System.Drawing.Size(1408, 635);
             this.Controls.Add(this.txtOutput);
             this.Controls.Add(this.txtInput);
             this.Controls.Add(this.txtExeName);
