@@ -18,6 +18,7 @@ namespace Formular_Specification
         bool isUndo;
         bool isRedo;
 
+        string FunctionName;
         string LastInput;
         int LastPosition;
         int previousLength = 0;
@@ -111,12 +112,17 @@ namespace Formular_Specification
 
         private void btnBuild_Click(object sender, EventArgs e)
         {
+            string ExeName = "";
             //Luu code vao file text
+            if (string.IsNullOrEmpty(txtExeName.Text))
+                ExeName = FunctionName;
+            else ExeName = txtExeName.Text;
+            File.WriteAllText(ExeName + ".cs", txtOutput.Text);
 
             //runcode
             if (currentLanguage == Language.Java)
                 RunJava("Input"); 
-            else RunCSharp("phanso");
+            else RunCSharp(ExeName);
         }
 
         
@@ -145,15 +151,15 @@ namespace Formular_Specification
             CSharpCodeProvider codeProvider = new CSharpCodeProvider();
             ICodeCompiler icc = codeProvider.CreateCompiler();
             //string Output = txtExeName + ".exe";
-            string Output = "Output.exe";
+            string Output = filename + ".exe";
 
             string output = "";
             System.CodeDom.Compiler.CompilerParameters parameters = new CompilerParameters();
             //Make sure we generate an EXE, not a DLL
             parameters.GenerateExecutable = true;
             parameters.OutputAssembly = Output;
-            CompilerResults results = icc.CompileAssemblyFromSource(parameters, File.ReadAllText(@"D:\University\Junior\HK1\Formular Specification\Formular-Specification\bin\Debug\phanso.cs"));
 
+            CompilerResults results = icc.CompileAssemblyFromSource(parameters, File.ReadAllText(Application.StartupPath + "\\" + filename + ".cs"));
             if (results.Errors.Count > 0)
             {
                 foreach (CompilerError CompErr in results.Errors)
@@ -197,6 +203,8 @@ namespace Formular_Specification
             //MessageBox.Show(RemoveBracketMeaningless("((a = b))()"));
             //arrSentence = txtInput.Text.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
             string content = RemoveAllSpace(txtInput.Text);
+            string param = "";
+            string MainInputCode = "";
             content = RemoveAllBreakLine(content);
             arrSentence = new string[3];
 
@@ -222,9 +230,36 @@ namespace Formular_Specification
             //MessageBox.Show(arrSentence[1]);
             //indexLine3 + 4 => Lay noi dung dong 3 bo tu "Post"
             arrSentence[2] = content.Substring(indexLine3 + 4, content.Length - (indexLine3 + 4));
-            
-            ConvertInputLine(arrSentence[0]);
-            txtOutput.Text += FunctionExcute(arrSentence[2]);
+
+            //Xử lý input
+            int indexInput = arrSentence[0].IndexOf("(");  
+            int indexOutput = arrSentence[0].IndexOf(")");
+            FunctionName = content.Substring(0, indexInput);   //lấy tên hàm
+            if (string.IsNullOrEmpty(txtClassName.Text))
+                txtClassName.Text = FunctionName;
+            else FunctionName = txtClassName.Text;
+            String InputVariable = arrSentence[0].Substring(indexInput + 1, indexOutput - indexInput - 1);  //lấy input
+            String OutputVariable = arrSentence[0].Substring(indexOutput + 1);   //lấy output
+
+            //Gọi hàm
+            string InputFunctioncall = "";  //hàm nhập
+            string FunctionCall = "";  //tham số truyền vào
+
+            //hiển thị lên màn hình kết quả
+            if (!string.IsNullOrEmpty(txtClassName.Text))
+                txtOutput.Text = "using System;\n using System.IO;\n using System.Text;\n" + "namespace FomularSpecification\n"+"{\n" +"\tpublic class "+ txtClassName.Text+"\n\t{\n";
+            else txtOutput.Text = "using System;\n using System.IO;\n using System.Text;\n" + "namespace FomularSpecification\n"+"{\n" +"\tpublic class "+ FunctionName+"\n\t{\n";
+            txtOutput.Text += GenerateInput(InputVariable, OutputVariable, FunctionName, ref param, ref MainInputCode, ref InputFunctioncall, ref FunctionCall);
+
+            //Đặt tên hàm
+            string OutputFunctionCall = "Xuat_"+FunctionName;  //hàm xuất
+            string PreFunctionCall = "KiemTra_"+FunctionName+"("+FunctionCall;    //Hàm điều kiện
+            string FunctionalCall = "Func_"+FunctionName+"("+FunctionCall;    //Hàm xử lý
+
+            txtOutput.Text+= GenerateOutput(OutputVariable,FunctionName)+ GeneratePre(arrSentence[1], FunctionName, param) 
+                + GenerateFunction(arrSentence[2],OutputVariable, FunctionName, param)  
+                + GenerateMain(OutputVariable,MainInputCode, FunctionName,InputFunctioncall, PreFunctionCall,FunctionalCall, OutputFunctionCall);
+
             HighlightAllCode();
         }
 
@@ -236,7 +271,25 @@ namespace Formular_Specification
                 content = content.Remove(SpaceIndex, 1);
                 SpaceIndex = content.IndexOf("\n", SpaceIndex);
             }
+            return content;
+        }
 
+        private string RemoveAllBracket(string content)
+        {
+            int OBracket = content.IndexOf("(");
+            while (OBracket >= 0)
+            {
+                content = content.Remove(OBracket, 1);
+                content = content.Insert(OBracket, " ");
+                OBracket = content.IndexOf("(", OBracket);
+            }
+            int CBracket = content.IndexOf(")");
+            while (CBracket >= 0)
+            {
+                content = content.Remove(CBracket, 1);
+                content = content.Insert(CBracket, " ");
+                CBracket = content.IndexOf(")", CBracket);
+            }
             return content;
         }
 
@@ -252,20 +305,36 @@ namespace Formular_Specification
             return content;
         }
 
-        void GenerateInput(string content, int input)
+        public string GenerateInput(string InputVariable, string OutputVariable, string FunctionName, ref string param, ref string MainInputCode, ref string InputFunctionCall, ref string FunctionCall)
         {
-            String[] arr = new string [6];
+            String[] arr = new string [4];
             String[] Input = new string[100];
+            
+            string Code = "";
+            int type = 1;
+
+            string temp = InputVariable;
+            int iTwoDot = temp.IndexOf(":");
+            int input = 0;
+
+            while (iTwoDot >= 0) //Đếm số lượng biến đầu vào
+            {
+                temp = temp.Remove(iTwoDot, 1);
+                iTwoDot = temp.IndexOf(":", iTwoDot);
+                input++;
+            }
+
+            string content = InputVariable +","+ OutputVariable;
             int count = 0;
-            int TwoDot = content.IndexOf(":");         
+            int TwoDot = content.IndexOf(":");
 
             while (TwoDot >= 0) //Đưa biến vào mảng
             {
                 //Kiểm tra có nhiều biến
                 if (content.Contains(","))
                 {
-                    int lastindex = content.IndexOf(","); //tìm vị trí dấu ,
-                    Input[count] = content.Substring(0, lastindex ); //lưu giá trị từ trước dấu ,
+                    int lastindex = content.IndexOf(","); //tìm vị trí dấu 
+                    Input[count] = content.Substring(0, lastindex); //lưu giá trị từ trước dấu ,
                     content = content.Remove(0, lastindex + 1); //xoá đến dấu ,
                 }
                 else //chỉ có 1 biến 
@@ -273,119 +342,551 @@ namespace Formular_Specification
                     Input[count] = content.Substring(0); //:)) Input[count] = content
                     content = content.Remove(TwoDot, 1);
                 }
-
-                TwoDot = content.IndexOf(":", TwoDot); //cập nhật lại vị trí dấu :
+                TwoDot = content.IndexOf(":"); //cập nhật lại vị trí dấu :
                 count++;
             }
 
             Array.Resize(ref Input, count);
 
-            arr[0] = arr[1] = arr[2] = arr[3]= arr[4]= arr[5]="";
-            for (int i = 0; i < Input.Length; i++)  //Chuyển sang code
+            arr[0] = arr[1] = arr[2] = arr[3]= "";
+
+            string HamNhap = "\t\tpublic void Nhap_"+ FunctionName+"(";
+            InputFunctionCall = "Nhap_" + FunctionName + "(";
+            for (int i = 0; i < input; i++)
             {
-                int twodot = Input[i].IndexOf(":");
-                string value = Input[i].Substring(0, twodot);
+                int itwodot = Input[i].IndexOf(":");
+                string itype = Input[i].Substring(itwodot);  //lấy kiểu dữ liệu sau :
 
-                if (!Input[i].Contains("*")) //Biến loại 1
+                if (itype.Contains("*"))
                 {
-                    if (Input[i].Contains("R") || Input[i].Contains("N") || Input[i].Contains("Z"))
-                    {
-                        if (arr[1] == "")
-                        {
-                            arr[1] += "int " + value ;
-                        }
-                        else arr[1] += "," + value;
-                        if (input > 0)
-                        {
-                            arr[4] += "Console.Write(Vui long nhap vao gia tri " + value + ": );\n" 
-                                + value + "=Int32.Parse(Console.Readline());\n";
-                        }
+                    type = 2;
+                    break;
+                }
+            }
 
-                    }
-                    else if (Input[i].Contains("Q"))
+            if (type == 1)
+            {
+                for (int i = 0; i < Input.Length; i++)
+                {
+                    int itwodot = Input[i].IndexOf(":");
+                    string ivalue = Input[i].Substring(0, itwodot);  //lấy biến trước :
+                    string itype = Input[i].Substring(itwodot);  //lấy kiểu dữ liệu sau :
+
+                    //Biến kết quả
+                    int fntwodot = Input[Input.Length - 1].IndexOf(":");
+                    string fnvalue = Input[Input.Length - 1].Substring(0, fntwodot);  //lấy biến trước :
+                    string fntype = Input[Input.Length - 1].Substring(fntwodot);  //lấy kiểu dữ liệu sau :
+
+                    if (!itype.Contains("*"))
                     {
-                        if (arr[2] == "")
+                        if (itype.Contains("N") || itype.Contains("Z"))
                         {
-                            arr[2] += "float " + value;
+                            if (arr[0] == "")
+                            {
+                                arr[0] += "\t\t\tint " + ivalue + " = 0";
+                            }
+                            else
+                            {
+                                arr[0] += "," + ivalue + " = 0";
+                            }
+                            if (input > 0)
+                            {
+                                InputFunctionCall += "ref " + ivalue + ",";
+                                FunctionCall += ivalue + ",";
+                                HamNhap += "ref int " + ivalue + ",";
+                                param += "int " + ivalue + ",";
+                                Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
+                                    + ivalue + "=Int32.Parse(Console.ReadLine());\n";
+                            }
                         }
-                        else arr[2] += "," + value;
-                        if (input > 0)
+                        else if (itype.Contains("Q") || itype.Contains("R"))
                         {
-                            arr[4] += "Console.Write(Vui long nhap vao gia tri " + value + ": );\n"
-                                + value + "=Int32.Parse(Console.Readline());\n";
+                            if (arr[1] == "")
+                            {
+                                arr[1] += "\t\t\tfloat " + ivalue + " = 0";
+                            }
+                            else
+                            {
+                                arr[1] += "," + ivalue + " = 0";
+                            }
+                            if (input > 0)
+                            {
+                                InputFunctionCall += "ref " + ivalue + ",";
+                                FunctionCall += ivalue + ",";
+                                HamNhap += "ref float " + ivalue + ",";
+                                param += "float " + ivalue + ",";
+                                Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
+                                    + ivalue + "=float.Parse(Console.ReadLine());\n";
+                            }
+                        }
+                        else if (itype.Contains("B"))
+                        {
+                            if (arr[2] == "")
+                            {
+                                arr[2] += "\t\t\tbool " + ivalue + " = true";
+                            }
+                            else
+                            {
+                                arr[2] += "," + ivalue + " = true";
+                            }
+                            if (input > 0)
+                            {
+                                InputFunctionCall += "ref " + ivalue + ",";
+                                FunctionCall += ivalue + ",";
+                                HamNhap += "ref bool " + ivalue + ",";
+                                param += "bool " + ivalue + ",";
+                            }
                         }
                     }
-                    else if (Input[i].Contains("B"))
+                    else if (itype.Contains("*"))
                     {
-                        if (arr[3] == "")
+                        if (itype.Contains("N") || itype.Contains("Z"))
                         {
-                            arr[3] += "boolean " + value;
+                            arr[3] += "\t\t\tint[] " + ivalue + " = new int [100];\n";
                         }
-                        else arr[3] += "," + value;
+                        else if (itype.Contains("Q") || itype.Contains("R"))
+                        {
+                            arr[3] += "\t\t\tfloat[] " + ivalue + " = new float [100];\n";
+                        }
+                        else if (itype.Contains("char"))
+                        {
+                            arr[3] += "\t\t\tchar[] " + ivalue + " = new char [100];\n";
+                        }
                     }
+
+
                     if (i == Input.Length - 1)
                     {
+                        if (arr[0] != "") arr[0] += ";" + "\n";
                         if (arr[1] != "") arr[1] += ";" + "\n";
                         if (arr[2] != "") arr[2] += ";" + "\n";
-                        if (arr[3] != "") arr[3] += ";" + "\n";
                     }
-                    input--;
-                }
-                else if (Input[i].Contains("*")) //biến loại 2
-                {
-                    //nhap so luong phan tu co trong mang
-                    arr[5] += "Console.Write(Vui long nhap vao so phan tu cua mang " + value +": );\n"
-                        +"int n = Int32.Parse.Console.Readline();\n";
 
-            
-                    if (Input[i].Contains("R") || Input[i].Contains("N") || Input[i].Contains("Z"))
+                    input--; //input = 0
+                    if (input == 0)
                     {
-                        arr[5] += "int[] " + value + " = new int[" + "n" + "];\n"
-                        + "for (int i=0;i<n;i++)\n" + "{ \n" + "\tConsole.Write(Nhap phan tu vao mang: );\n" +
-                            "\t" + value + "[i]" + "=Int32.Parse(Console.Readline());\n}\n";
+                        //MessageBox.Show(HamNhap);
+                        HamNhap = HamNhap.Remove(HamNhap.Length - 1);
+                        HamNhap += ")";
+
+                        InputFunctionCall = InputFunctionCall.Remove(InputFunctionCall.Length - 1);
+                        InputFunctionCall += ")";
+
+                        FunctionCall = FunctionCall.Remove(FunctionCall.Length - 1);
+                        FunctionCall += ")";
+
+                        param = param.Remove(param.Length - 1);
                     }
-                    else if (Input[i].Contains("Q"))
-                    {
-                        arr[5] += "float[] " + value + " = new float[" + "n" + "];\n"
-                            + "for (int i=0;i<n;i++)\n" + "{ \n" + "\tConsole.Write(Nhap phan tu vao mang: );\n" +
-                            "\t" + value + "[i]" + "=float.Parse(Console.Readline());\n}\n";
-                    }
-                    input--;
+
                 }
             }
-
-            arr[0] = "using System;\nusing System.Collections.Generic;\nusing System.ComponentModel;\n" +
-                "using System.Data;\nusing System.Drawing;\nusing System.IO;\nusing System.Linq;\nusing System.Text;\n" +
-                "using System.Text.RegularExpressions;\nusing System.Threading.Tasks;\nusing System.Windows.Forms;\n";
-
-            txtOutput.Text = arr[0] + arr[1] + arr[2] + arr[3] + arr[4] + arr[5];
-        }
-
-        private void ConvertInputLine(string content)
-        {
-            RemoveAllSpace(content);
-            String[] arr = new string[3];
-            int indexInput = content.IndexOf("(");
-            int indexOutput = content.IndexOf(")");
-
-            arr[0] = content.Substring(indexInput + 1, indexOutput - indexInput - 1); //input
-            arr[1] = content.Substring(indexOutput + 1); //ouput
-            arr[2] = arr[0] + "," + arr[1];
-
-            int TwoDot = arr[1].IndexOf(":");
-            int Count = 0;
-
-            while (TwoDot >= 0) //Đếm số lượng biến đầu vào
+            if (type == 2)
             {
-                Count++;
-                arr[0] = arr[0].Remove(TwoDot, 1);
-                TwoDot = arr[0].IndexOf(":", TwoDot);
+                for (int i = 0; i < Input.Length-2; i++)
+                {
+                    //Biến hiện tại i
+                    int itwodot = Input[i].IndexOf(":");
+                    string ivalue = Input[i].Substring(0, itwodot);  //lấy biến trước :
+                    string itype = Input[i].Substring(itwodot);  //lấy kiểu dữ liệu sau :
+
+                    //Biến sau đó i + 1
+                    int jtwodot = Input[i + 1].IndexOf(":");
+                    string jvalue = Input[i + 1].Substring(0, jtwodot);  //lấy biến trước :
+                    string jtype = Input[i + 1].Substring(jtwodot);  //lấy kiểu dữ liệu sau :
+
+                    //Biến sau đó i + 2
+                    int ztwodot = Input[i + 2].IndexOf(":");
+                    string ztype = Input[i + 2].Substring(ztwodot);  //lấy kiểu dữ liệu sau :
+
+                    //Biến kết quả
+                    int fntwodot = Input[Input.Length - 1].IndexOf(":");
+                    string fnvalue = Input[Input.Length - 1].Substring(0, fntwodot);  //lấy biến trước :
+                    string fntype = Input[Input.Length - 1].Substring(fntwodot);  //lấy kiểu dữ liệu sau :
+
+                    if (!itype.Contains("*"))
+                    {
+                        if (jtype.Contains("*"))
+                        {
+                            if (arr[0] == "")
+                            {
+                                arr[0] += "\t\t\tint " + ivalue + " = 0";
+                            }
+                            else
+                            {
+                                arr[0] += "," + ivalue + " = 0";
+                            }
+
+                            Code += "\t\t\tConsole.Write(\"Nhap so phan tu cua mang " + jvalue + ": \");\n"
+                                + "\t\t\tint " + ivalue + " = Int32.Parse.Console.ReadLine();\n";
+                            if (jtype.Contains("N") || jtype.Contains("Z"))
+                            {
+                                arr[3] += "\t\t\tint[] "+jvalue+" = new int [100];\n";
+                                Code += "\t\t\tint[] " + jvalue + " = new int[" + ivalue + "];\n"
+                                + "\t\t\tfor (int i=0;i<" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
+                                "\t\t\t\tConsole.Write(\"Nhap phan tu vao mang: \");\n" +
+                                    "\t\t\t\t" + jvalue + "[i]" + "=Int32.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                if (input > 0)
+                                {
+                                    FunctionCall += ivalue + ",";
+                                    InputFunctionCall += "ref " + ivalue + "," + jvalue + ",";
+                                    HamNhap += "ref int " + ivalue + "," + "[] int " + jvalue + ",";
+                                    param += "int " + ivalue + "," + "[] int " + jvalue + ",";
+                                }
+                            }
+                            else if (jtype.Contains("Q") || jtype.Contains("R"))
+                            {
+                                arr[3] += "\t\t\tfloat[] " + jvalue + " = new float [100];\n";
+                                Code += "\t\t\tfloat[] " + jvalue + " = new float[" + ivalue + "];\n"
+                                    + "\t\t\tfor (int i=0;i<" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
+                                    "\t\t\t\tConsole.Write(\"Nhap phan tu vao mang: \");\n" +
+                                    "\t\t\t\t" + jvalue + "[i]" + "=float.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                if (input > 0)
+                                {
+                                    FunctionCall += ivalue + ",";
+                                    InputFunctionCall += "ref " + ivalue + "," + jvalue + ",";
+                                    HamNhap += "ref int " + ivalue + "," + "[] float " + jvalue + ",";
+                                    param += "int " + ivalue + "," + "[] float " + jvalue + ",";
+                                }
+                            }
+
+                            i++;
+
+                            if (i == Input.Length - 2)
+                            {
+                                MessageBox.Show(fnvalue);
+                                if (!fntype.Contains("*"))
+                                {
+                                    if (fntype.Contains("N") || fntype.Contains("Z"))
+                                    {
+                                        if (arr[0] == "")
+                                        {
+                                            arr[0] += "\t\tint " + fnvalue + " = 0";
+                                        }
+                                        else
+                                        {
+                                            arr[0] += "," + fnvalue + " = 0";
+                                        }
+                                    }
+                                    else if (fntype.Contains("Q") || fntype.Contains("R"))
+                                    {
+                                        if (arr[1] == "")
+                                        {
+                                            arr[1] += "\t\t\tfloat " + fnvalue + " = 0";
+                                        }
+                                        else
+                                        {
+                                            arr[1] += "," + fnvalue + " = 0";
+                                        }
+                                    }
+                                    else if (fntype.Contains("B"))
+                                    {
+                                        if (arr[2] == "")
+                                        {
+                                            arr[2] += "\t\t\tboolean " + fnvalue + " = true";
+                                        }
+                                        else
+                                        {
+                                            arr[2] += "," + fnvalue + " = true";
+                                        }
+                                    }
+                                }
+
+                                if (fntype.Contains("*"))
+                                {
+                                    if (fntype.Contains("N") || fntype.Contains("Z"))
+                                    {
+                                        arr[3] += "\t\t\tint[] " + fnvalue + " = new int [100];\n";
+                                    }
+                                    else if (fntype.Contains("Q") || fntype.Contains("R"))
+                                    {
+                                        arr[3] += "\t\t\tfloat[] " + fnvalue + " = new float [100];\n";
+                                    }
+                                    else if(fntype.Contains("char"))
+                                    {
+                                        arr[3] += "\t\t\tchar[] " + fnvalue + " = new char [100];\n";
+                                    }
+                                }
+
+                                if (arr[0] != "") arr[0] += ";" + "\n";
+                                if (arr[1] != "") arr[1] += ";" + "\n";
+                                if (arr[2] != "") arr[2] += ";" + "\n";
+                            }
+
+                            input-=2;
+
+                            if (input == 0)
+                            {
+                                HamNhap = HamNhap.Remove(HamNhap.Length - 1);
+                                HamNhap += ")";
+
+                                InputFunctionCall = InputFunctionCall.Remove(InputFunctionCall.Length - 1);
+                                InputFunctionCall += ")";
+
+                                FunctionCall = FunctionCall.Remove(FunctionCall.Length - 1);
+                                FunctionCall += ")";
+
+                                param = param.Remove(param.Length - 1);
+                            }
+                        }
+                        if (!jtype.Contains("*"))
+                        {
+                            if (ztype.Contains("*"))
+                            {
+                                string ztemp;
+                                ztemp = Input[i + 2];
+                                Input[i + 2] = Input[i + 1];
+                                Input[i + 1] = ztemp;
+                                i--;
+                            } else MessageBox.Show("Luồng nhập sai quy tắc");
+                        }
+                    }
+                    if (itype.Contains("*"))
+                    {
+                        if (!jtype.Contains("*"))
+                        {
+                            if (arr[0] == "")
+                            {
+                                arr[0] += "\t\t\tint " + jvalue + " = 0";
+                            }
+                            else
+                            {
+                                arr[0] += "," + jvalue + " = 0";
+                            }
+
+                            Code += "\t\t\tConsole.WriteLine(\"Nhap so phan tu cua mang " + ivalue + ": \");\n"
+                                + "\t\t\tint " + jvalue + " = Int32.Parse.Console.ReadLine();\n";
+                            if (itype.Contains("N") || itype.Contains("Z"))
+                            {
+                                arr[3] += "\t\t\tint[] " + ivalue + " = new int [100];\n";
+                                Code += "\t\t\tint[] " + ivalue + " = new int[" + jvalue + "];\n"
+                                + "\t\t\tfor (int i=0;i<" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
+                                "\t\t\t\tConsole.WriteLine(\"Nhap phan tu vao mang: \");\n" +
+                                    "\t\t\t\t" + ivalue + "[i]" + "=Int32.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                if (input > 0)
+                                {
+                                    FunctionCall += jvalue + "," + ivalue + ",";
+                                    InputFunctionCall += "ref " + jvalue + "," + ivalue + ",";
+                                    HamNhap += "ref int " + jvalue + "," + " int[] " + ivalue + ",";
+                                    param += "int " + jvalue + "," + " int[] " + ivalue + ",";
+                                }
+                            }
+                            else if (itype.Contains("Q") || itype.Contains("R"))
+                            {
+                                arr[3] += "\t\t\tfloat[] " + ivalue + " = new float [100];\n";
+                                Code += "\t\t\tfloat[] " + ivalue + " = new float[" + jvalue + "];\n"
+                                    + "\t\t\tfor (int i=0;i<" + jvalue + ";i++)\n" + "\t\t\t{ \n" +
+                                    "\t\t\t\tConsole.WriteLine(\"Nhap phan tu vao mang: \");\n" +
+                                    "\t\t\t\t" + ivalue + "[i]" + "=float.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                if (input > 0)
+                                {
+                                    FunctionCall += jvalue + "," + ivalue + ",";
+                                    InputFunctionCall += "ref " + jvalue + "," + ivalue + ",";
+                                    HamNhap += "ref int " + jvalue + "," + "float[] " + ivalue + ",";
+                                    param += "int " + jvalue + "," + " float[] " + ivalue + ",";
+                                }
+                            }
+
+                            i++;
+
+                            if (i == Input.Length - 2)
+                            {
+                                if (fntype.Contains("N") || fntype.Contains("Z"))
+                                {
+                                    if (arr[0] == "")
+                                    {
+                                        arr[0] += "\t\tint " + fnvalue + " = 0";
+                                    }
+                                    else
+                                    {
+                                        arr[0] += "," + fnvalue + " = 0";
+                                    }
+                                }
+                                else if (fntype.Contains("Q") || fntype.Contains("R"))
+                                {
+                                    if (arr[1] == "")
+                                    {
+                                        arr[1] += "\t\t\tfloat " + fnvalue + " = 0";
+                                    }
+                                    else
+                                    {
+                                        arr[1] += "," + fnvalue + " = 0";
+                                    }
+                                }
+                                else if (fntype.Contains("B"))
+                                {
+                                    if (arr[2] == "")
+                                    {
+                                        arr[2] += "\t\t\tboolean " + fnvalue + " = true";
+                                    }
+                                    else
+                                    {
+                                        arr[2] += "," + fnvalue + " = true";
+                                    }
+                                }
+
+                                if (arr[0] != "") arr[0] += ";" + "\n";
+                                if (arr[1] != "") arr[1] += ";" + "\n";
+                                if (arr[2] != "") arr[2] += ";" + "\n";
+                            }
+
+                            input -= 2;
+
+                            if (input == 0)
+                            {
+                                HamNhap = HamNhap.Remove(HamNhap.Length - 1);
+                                HamNhap += ")";
+
+                                InputFunctionCall = InputFunctionCall.Remove(InputFunctionCall.Length - 1);
+                                InputFunctionCall += ")";
+
+                                FunctionCall = FunctionCall.Remove(FunctionCall.Length - 1);
+                                FunctionCall += ")";
+
+                                param = param.Remove(param.Length - 1);
+                            }
+                        }
+                        if (jtype.Contains("*"))
+                        {
+                            if (!ztype.Contains("*"))
+                            {
+                                string ztemp;
+                                ztemp = Input[i + 2];
+                                Input[i + 2] = Input[i + 1];
+                                Input[i + 1] = ztemp;
+                                i--;
+                            }
+                            else MessageBox.Show("Luồng nhập sai quy tắc");
+                        }
+                    }
+                }
             }
 
-            //MessageBox.Show(arr[2]);
-            GenerateInput(arr[2], Count);
+            //Code += arr[4];
+
+            MainInputCode = arr[0] + arr[1] + arr[2] + arr[3]; 
+            return HamNhap + "\n\t\t{\n" + Code + "\t\t}\n\n";
         }
-        
+
+        private string GenerateOutput(string OutputVariable, string FunctionName)
+        {
+            string code = "\t\tpublic void Xuat_"+ FunctionName;
+            int twodot = OutputVariable.IndexOf(":");
+            string value = OutputVariable.Substring(0, twodot);
+            string type = OutputVariable.Substring(twodot);
+
+            if (!type.Contains("*"))
+            {
+                if (type.Contains("N") || type.Contains("Z"))
+                {
+                    code += "( int " + value + " )";
+                    code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}\"," + value + ");\n\t\t}\n";
+                }
+                if (type.Contains("R") || type.Contains("Q"))
+                {
+                    code += "( float " + value + " )";
+                    code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}\"," + value + ");\n\t\t}\n";
+                }
+                if (type.Contains("B"))
+                {
+                    code += "( bool " + value + " )";
+                    code += "\n\t\t{\n" + "\t\t\tif (" + value + ")\n\t\t\t{\n";
+                    code += "\t\t\t\tConsole.Write(\"Dung\");\n\t\t\t}";
+                    code += " else Console.Write(\"Sai\");" + "\n\t\t}\n";
+                }
+            }
+            else if(type.Contains("*"))
+            {
+                if (type.Contains("N") || type.Contains("Z"))
+                {
+                    code += "( int[] " + value + " )";
+                    code += "\n\t\t{"+"\n\t\t\tfor(int i=0;i<" + value + ".Length;" + "i++)\n";
+                    code += "\t\t\t{\n" + "\t\t\t\tConsole.WriteLine(" + value+"[i].ToString());\n\t\t\t}\n";
+                    code += "\t\t}\n";
+                }
+                if (type.Contains("R") || type.Contains("Q"))
+                {
+                    code += "( float[] " + value + " )";
+                    code += "\n\t\t{" + "\n\t\t\tfor(int i=0;i<" + value + ".Length;" + "i++)\n";
+                    code += "\t\t\t{\n" + "\t\t\t\tConsole.WriteLine(" + value + "[i].ToString());\n\t\t\t}\n";
+                    code += "\t\t}\n";
+                }
+                if (type.Contains("char"))
+                {
+                    code += "( char[] " + value + " )";
+                    code += "\n\t\t{" + "\n\t\t\tfor(int i=0;i<" + value + ".Length;" + "i++)\n";
+                    code += "\t\t\t{\n" + "\t\t\t\tConsole.WriteLine(" + value + "[i]);\n\t\t\t}\n";
+                    code += "\t\t}\n";
+                }
+            }
+
+            return code;
+        }
+
+        private string GeneratePre(string content, string FunctionName, string param)
+        {
+            string code = "\n\t\tpublic int KiemTra_"+FunctionName+"("+param+")\n"+"\t\t{\n";
+            if (content != "")
+            {
+                content = RemoveAllBracket(content);
+                code += "\t\t\tif (" + content + ")\n\t\t\t{\n" + "\t\t\t\treturn 1;\n" + "\t\t\t} else return 0;\n"+"\t\t}\n";
+            }
+            else code += "\t\t\treturn 1;\n"+"\t\t}\n";
+            return code;
+        }
+
+        private string GenerateFunction(string content, string Output, string FunctionName, string param)
+        {
+            string code = "";
+            int TwoDot = Output.IndexOf(":");
+            string type = Output.Substring(TwoDot);
+
+            if (!type.Contains("*"))
+            {
+                if (type.Contains("N") || type.Contains("Z"))
+                {
+                    code = "\n\t\tpublic int Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                    code += FunctionExcute(content) + "\n\t\t}\n";
+                }
+                else if (type.Contains("R") || type.Contains("Q"))
+                {
+                    code = "\n\t\tpublic float Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                    code += FunctionExcute(content) + "\n\t\t}\n";
+                }
+                else if (type.Contains("B"))
+                {
+                    code = "\n\t\tpublic bool Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                    code += FunctionExcute(content) + "\n\t\t}\n";
+                }
+            }
+
+            else if (type.Contains("*"))
+            {
+                code = "\n\t\tpublic int Func" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                code += FunctionExcute(content) + "\n\t\t}\n";
+            }
+
+            return code;
+        }
+
+        private string GenerateMain(string OutputVariable,string MainInputCode, string FunctionName, string InputFunctionCall, string PreFunctionalCall, string FunctionalCall, string OutputFunctionCall)
+        {
+            int TwoDot = OutputVariable.IndexOf(":");
+            string Value = OutputVariable.Substring(0,TwoDot);
+
+            string code = "\n\t\tpublic static void Main (string[] args)"+ "\n\t\t{\n";
+            code += MainInputCode + "\t\t\t" + FunctionName + " p = new " + FunctionName + "();\n"
+                + "\t\t\tp." + InputFunctionCall + ";\n"
+                + "\t\t\tif(p." + PreFunctionalCall + " == 1)\n" 
+                + "\t\t\t{\n" +"\t\t\t\t"+Value +"=p."+FunctionalCall+";\n"
+                + "\t\t\t\tp."+OutputFunctionCall+"("+Value+");\n" + "\t\t\t}\n"
+                + "\t\t\telse Console.WriteLine(\"Thong tin nhap khong hop le\");\n"
+                + "\n\t\t\tConsole.ReadLine();\n"
+                + "\t\t}\n"
+                + "\t}\n}";
+            
+            return code;
+        }
+
         private string FunctionExcute(string content)
         {
             if (content.Contains("}."))
@@ -438,9 +939,15 @@ namespace Formular_Specification
             //Xử lí tách từng điều kiện và giá trị trả về
             for (int i = 0; i < lstCondition.Count; i++)
             {
-                Func += CreateConditionCode(lstCondition[i]);
-                if (i != lstCondition.Count - 1)
-                    Func += "\n";
+                Func += CreateConditionCode(lstCondition[i]) + "\n";
+                if (i == lstCondition.Count - 1)
+                {
+                    //lay gia tri return cuoi cung
+                    int startIndex = Func.LastIndexOf("return");
+                    int endIndex = Func.LastIndexOf(";");
+                    string finalReturn = Func.Substring(startIndex, endIndex - startIndex);
+                    Func += finalReturn + ";";
+                }
             }
 
             txtOutput.Text = Func;
@@ -510,18 +1017,18 @@ namespace Formular_Specification
                 
 
                 if (head.Contains(length))
-                    Func += "for (int " + variable + " = " + head + "; " + variable + " >= " + tail + "; " + variable + "--)\n";
-                else Func += "for (int " + variable + " = " + head + "; " + variable + " <= " + tail + "; " + variable + "++)\n";
+                    Func += "\t\t\tfor (int " + variable + " = " + head + "; " + variable + " >= " + tail + "; " + variable + "--)\n";
+                else Func += "\t\t\tfor (int " + variable + " = " + head + "; " + variable + " <= " + tail + "; " + variable + "++)\n";
 
                 //Chinh tab
                 for (int j = 0; j < i; j++)
                 {
                     Func += "\t";
                 }
-                Func += "{\n";
+                Func += "\t\t\t{\n";
                 for (int j = 0; j <= i; j++)
                 {
-                    Func += "\t";
+                    Func += "\t\t\t\t";
                 }
             }
             string condition = RemoveBracketMeaningless(lstCondition[lstCondition.Count - 1]);
@@ -559,37 +1066,37 @@ namespace Formular_Specification
                 Func += "if (!" + condition + "){\n";
                 for (int i = 0; i < lstCondition.Count; i++)
                 {
-                    Func += "\t";
+                    Func += "\t\t";
                 }
                 Func += "return false;\n";
                 for (int i = 0; i < lstCondition.Count-1; i++)
                 {
-                    Func += "\t";
+                    Func += "\t\t\t";
                 }
                 if (lstCondition.Count == 3)
-                    Func += "}\n\t}\n}\nreturn true;";
-                else Func += "}\n}\nreturn true;";
+                    Func += "\t}\n\t}\n\t\t\t}\n\t\t\treturn true;";
+                else Func += "\t}\n\t\t\t}\n\t\t\treturn true;";
             } //TT TT hoac TT
             else if (lstCondition.Count == 2 && lstCondition[0].Contains("TT")//Chi co 1 for
                 || lstCondition.Count == 3 && lstCondition[0].Contains("TT") && lstCondition[1].Contains("TT")) //Co 2 for  va ca 2 deu la Ton Tai
             {
-                Func += "if (" + condition + "){\n";
+                Func += "\t\tif (" + condition + "){\n";
                 for (int i = 0; i < lstCondition.Count; i++)
                 {
                     Func += "\t";
                 }
-                Func += "return true;\n";
+                Func += "\treturn true;\n";
                 for (int i = 0; i < lstCondition.Count - 1; i++)
                 {
                     Func += "\t";
                 }
                 if (lstCondition.Count == 3)
-                    Func += "}\n\t}\n}\nreturn false;";
+                    Func += "\t\t}\n\t\t\t}\n}\n\t\treturn false;";
                 else Func += "}\n}\nreturn false;";
             }
             else if (lstCondition.Count == 3 && lstCondition[0].Contains("VM") && lstCondition[1].Contains("TT")) //Co 2 for va MV TT
             {
-                Func += "if (" + condition + "){" +
+                Func += "\t\tif (" + condition + "){" +
                     "\n\t\t\treturn break;" +
                     "\n\t\tif (" + lstVariable[lstVariable.Count - 1] +" == " + tail +"){" +
                     "\n\t\t\treturn false;" +
@@ -612,9 +1119,6 @@ namespace Formular_Specification
 
             return Func;
         }
-
-
-        
 
         /// <summary>
         /// Tiến hành tách phần giá trị trả về điều kiện, tạo câu if hoàn chỉnh (Type 1)
@@ -645,6 +1149,10 @@ namespace Formular_Specification
                 endIndex = item.Length - 1;
 
             string sentenceReturn = item.Substring(startIndex, endIndex - startIndex + 1);
+            if (sentenceReturn.ToLower().Equals("false"))
+                sentenceReturn = "false";
+            else if (sentenceReturn.ToLower().Equals("true"))
+                sentenceReturn = "true";
 
             //Remove Example (kq=a)&&(a > 1) => (a > 1)
             int andIndex = item.IndexOf("&&");
@@ -667,9 +1175,9 @@ namespace Formular_Specification
             item = insertEqual(item);
 
             if (!string.IsNullOrEmpty(item))
-                condition = "if (" + item + ")\n"
-                    + "{\n\treturn " + sentenceReturn + ";\n}";
-            else condition = "return " + sentenceReturn + ";";
+                condition = "\t\t\tif (" + item + ")\n"
+                    + "\t\t\t{\n\t\t\t\treturn " + sentenceReturn + ";\n\t\t\t}";
+            else condition = "\t\t\treturn " + sentenceReturn + ";";
             return condition;
         }
 
@@ -1102,3 +1610,4 @@ namespace Formular_Specification
         
     }
 }
+

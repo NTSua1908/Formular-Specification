@@ -70,13 +70,15 @@
             // 
             // menuStrip1
             // 
+            this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.editToolStripMenuItem,
             this.aboutToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(783, 24);
+            this.menuStrip1.Padding = new System.Windows.Forms.Padding(4, 2, 0, 2);
+            this.menuStrip1.Size = new System.Drawing.Size(879, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -181,6 +183,7 @@
             // 
             // toolStrip1
             // 
+            this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.btnNew,
             this.btnOpen,
@@ -194,7 +197,7 @@
             this.btnJava});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(783, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(879, 27);
             this.toolStrip1.TabIndex = 1;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -204,7 +207,7 @@
             this.btnNew.Image = global::Formular_Specification.Properties.Resources._new;
             this.btnNew.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnNew.Name = "btnNew";
-            this.btnNew.Size = new System.Drawing.Size(23, 22);
+            this.btnNew.Size = new System.Drawing.Size(24, 24);
             this.btnNew.Text = "New";
             this.btnNew.Click += new System.EventHandler(this.btnNew_Click);
             // 
@@ -214,7 +217,7 @@
             this.btnOpen.Image = global::Formular_Specification.Properties.Resources.folder;
             this.btnOpen.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnOpen.Name = "btnOpen";
-            this.btnOpen.Size = new System.Drawing.Size(23, 22);
+            this.btnOpen.Size = new System.Drawing.Size(24, 24);
             this.btnOpen.Text = "Open";
             this.btnOpen.Click += new System.EventHandler(this.btnOpen_Click);
             // 
@@ -224,7 +227,7 @@
             this.btnSave.Image = global::Formular_Specification.Properties.Resources.save;
             this.btnSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(23, 22);
+            this.btnSave.Size = new System.Drawing.Size(24, 24);
             this.btnSave.Text = "Save";
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
@@ -234,7 +237,7 @@
             this.btnCut.Image = global::Formular_Specification.Properties.Resources.cut;
             this.btnCut.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnCut.Name = "btnCut";
-            this.btnCut.Size = new System.Drawing.Size(23, 22);
+            this.btnCut.Size = new System.Drawing.Size(24, 24);
             this.btnCut.Text = "Cut";
             this.btnCut.Click += new System.EventHandler(this.btnCut_Click);
             // 
@@ -244,7 +247,7 @@
             this.btnCopy.Image = global::Formular_Specification.Properties.Resources.copy;
             this.btnCopy.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnCopy.Name = "btnCopy";
-            this.btnCopy.Size = new System.Drawing.Size(23, 22);
+            this.btnCopy.Size = new System.Drawing.Size(24, 24);
             this.btnCopy.Text = "Copy";
             this.btnCopy.Click += new System.EventHandler(this.btnCopy_Click);
             // 
@@ -254,7 +257,7 @@
             this.btnPaste.Image = global::Formular_Specification.Properties.Resources.paste;
             this.btnPaste.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnPaste.Name = "btnPaste";
-            this.btnPaste.Size = new System.Drawing.Size(23, 22);
+            this.btnPaste.Size = new System.Drawing.Size(24, 24);
             this.btnPaste.Text = "Paste";
             this.btnPaste.Click += new System.EventHandler(this.btnPaste_Click);
             // 
@@ -264,7 +267,7 @@
             this.btnUndo.Image = global::Formular_Specification.Properties.Resources.undo;
             this.btnUndo.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnUndo.Name = "btnUndo";
-            this.btnUndo.Size = new System.Drawing.Size(23, 22);
+            this.btnUndo.Size = new System.Drawing.Size(24, 24);
             this.btnUndo.Text = "Undo";
             this.btnUndo.Click += new System.EventHandler(this.btnUndo_Click);
             // 
@@ -274,7 +277,7 @@
             this.btnRedo.Image = global::Formular_Specification.Properties.Resources.redo;
             this.btnRedo.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnRedo.Name = "btnRedo";
-            this.btnRedo.Size = new System.Drawing.Size(23, 22);
+            this.btnRedo.Size = new System.Drawing.Size(24, 24);
             this.btnRedo.Text = "Redo";
             this.btnRedo.Click += new System.EventHandler(this.btnRedo_Click);
             // 
@@ -283,7 +286,7 @@
             this.btnCSharp.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.btnCSharp.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnCSharp.Name = "btnCSharp";
-            this.btnCSharp.Size = new System.Drawing.Size(26, 22);
+            this.btnCSharp.Size = new System.Drawing.Size(26, 24);
             this.btnCSharp.Text = "C#";
             this.btnCSharp.TextImageRelation = System.Windows.Forms.TextImageRelation.Overlay;
             this.btnCSharp.Click += new System.EventHandler(this.btnCSharp_Click);
@@ -294,17 +297,18 @@
             this.btnJava.Image = ((System.Drawing.Image)(resources.GetObject("btnJava.Image")));
             this.btnJava.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnJava.Name = "btnJava";
-            this.btnJava.Size = new System.Drawing.Size(33, 22);
+            this.btnJava.Size = new System.Drawing.Size(33, 24);
             this.btnJava.Text = "Java";
             this.btnJava.Click += new System.EventHandler(this.btnJava_Click);
             // 
             // statusStrip1
             // 
+            this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.txtLanguage});
             this.statusStrip1.Location = new System.Drawing.Point(0, 494);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(783, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(879, 22);
             this.statusStrip1.TabIndex = 2;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -385,15 +389,16 @@
             this.txtOutput.Location = new System.Drawing.Point(358, 52);
             this.txtOutput.Name = "txtOutput";
             this.txtOutput.ReadOnly = true;
-            this.txtOutput.Size = new System.Drawing.Size(413, 439);
+            this.txtOutput.Size = new System.Drawing.Size(512, 439);
             this.txtOutput.TabIndex = 12;
             this.txtOutput.Text = "";
+            this.txtOutput.WordWrap = false;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(783, 516);
+            this.ClientSize = new System.Drawing.Size(879, 516);
             this.Controls.Add(this.txtOutput);
             this.Controls.Add(this.txtInput);
             this.Controls.Add(this.txtExeName);
