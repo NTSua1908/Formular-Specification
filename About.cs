@@ -22,5 +22,10 @@ namespace Formular_Specification
             //    + "Phần mềm này là đồ án môn học Đặc tả hình thức của giảng viên "
             //    + "Thái Thụy Hàn Uyển";
         }
+
+        private void lbLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://github.com/NTSua1908/Formular-Specification");
+        }
     }
 }

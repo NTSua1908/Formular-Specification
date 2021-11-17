@@ -270,7 +270,7 @@ namespace Formular_Specification
                 }
                 else //chỉ có 1 biến 
                 { 
-                    Input[count] = content.Substring(0);
+                    Input[count] = content.Substring(0); //:)) Input[count] = content
                     content = content.Remove(TwoDot, 1);
                 }
 
@@ -390,8 +390,7 @@ namespace Formular_Specification
         {
             if (content.Contains("}."))
                 return ForFunction(content);
-            return IfFunction(content);
-            
+            return IfFunction(content);  
         }
 
         /// <summary>
@@ -709,7 +708,7 @@ namespace Formular_Specification
         {
             //Remove bracket '()'
             int index = content.IndexOf("()");
-            while (index > 0)
+            while (index >= 0)
             {
                 content = content.Remove(index, 2);
                 index = content.IndexOf("()");
@@ -996,7 +995,8 @@ namespace Formular_Specification
             currentLanguage = Language.CSharp;
         }
 
-        private void btnCPlusPlus_Click(object sender, EventArgs e)
+
+        private void btnJava_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(JavaPath))
             {

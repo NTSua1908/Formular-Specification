@@ -52,7 +52,7 @@
             this.btnUndo = new System.Windows.Forms.ToolStripButton();
             this.btnRedo = new System.Windows.Forms.ToolStripButton();
             this.btnCSharp = new System.Windows.Forms.ToolStripButton();
-            this.btnCPlusPlus = new System.Windows.Forms.ToolStripButton();
+            this.btnJava = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.txtLanguage = new System.Windows.Forms.ToolStripStatusLabel();
             this.label1 = new System.Windows.Forms.Label();
@@ -168,14 +168,14 @@
             // MenuAboutTeam
             // 
             this.MenuAboutTeam.Name = "MenuAboutTeam";
-            this.MenuAboutTeam.Size = new System.Drawing.Size(180, 22);
+            this.MenuAboutTeam.Size = new System.Drawing.Size(158, 22);
             this.MenuAboutTeam.Text = "About ST Group";
             this.MenuAboutTeam.Click += new System.EventHandler(this.MenuAboutTeam_Click);
             // 
             // btnEnviroment
             // 
             this.btnEnviroment.Name = "btnEnviroment";
-            this.btnEnviroment.Size = new System.Drawing.Size(180, 22);
+            this.btnEnviroment.Size = new System.Drawing.Size(158, 22);
             this.btnEnviroment.Text = "Environment";
             this.btnEnviroment.Click += new System.EventHandler(this.btnEnviroment_Click);
             // 
@@ -191,7 +191,7 @@
             this.btnUndo,
             this.btnRedo,
             this.btnCSharp,
-            this.btnCPlusPlus});
+            this.btnJava});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(783, 25);
@@ -288,15 +288,15 @@
             this.btnCSharp.TextImageRelation = System.Windows.Forms.TextImageRelation.Overlay;
             this.btnCSharp.Click += new System.EventHandler(this.btnCSharp_Click);
             // 
-            // btnCPlusPlus
+            // btnJava
             // 
-            this.btnCPlusPlus.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.btnCPlusPlus.Image = ((System.Drawing.Image)(resources.GetObject("btnCPlusPlus.Image")));
-            this.btnCPlusPlus.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnCPlusPlus.Name = "btnCPlusPlus";
-            this.btnCPlusPlus.Size = new System.Drawing.Size(33, 22);
-            this.btnCPlusPlus.Text = "Java";
-            this.btnCPlusPlus.Click += new System.EventHandler(this.btnCPlusPlus_Click);
+            this.btnJava.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.btnJava.Image = ((System.Drawing.Image)(resources.GetObject("btnJava.Image")));
+            this.btnJava.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnJava.Name = "btnJava";
+            this.btnJava.Size = new System.Drawing.Size(33, 22);
+            this.btnJava.Text = "Java";
+            this.btnJava.Click += new System.EventHandler(this.btnJava_Click);
             // 
             // statusStrip1
             // 
@@ -447,7 +447,7 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel txtLanguage;
         private System.Windows.Forms.ToolStripButton btnCSharp;
-        private System.Windows.Forms.ToolStripButton btnCPlusPlus;
+        private System.Windows.Forms.ToolStripButton btnJava;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btnBuild;
         private System.Windows.Forms.TextBox txtClassName;
