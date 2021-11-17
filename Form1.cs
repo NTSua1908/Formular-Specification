@@ -28,8 +28,8 @@ namespace Formular_Specification
         //string[] Calculation = { "+", "-", "*", "/", "%", ">", "<", "=", "!=", ">=", "<=", "!", "&&", "||"};
 
         string[] codeKeywords = { "using", "namespace", "class", "static", "if", "for", 
-            "return", "void", "public", "private", "protected", "float", "int", "Int32","bool", 
-            "string", "Console" };
+            "return", "void", "public", "private", "protected", "ref", "float", "int", "Int32","bool", 
+            "string", "Console", "float[]", "int[]", "string[]"};
         string[] function = { "Write", "WriteLine", "Parse", "Readline"};
 
         Stack<string> undo;
@@ -112,6 +112,12 @@ namespace Formular_Specification
 
         private void btnBuild_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrEmpty(txtOutput.Text))
+            {
+                MessageBox.Show("Invalid Input");
+                return;
+            }
+
             string ExeName = "";
             //Luu code vao file text
             if (string.IsNullOrEmpty(txtExeName.Text))
@@ -247,8 +253,8 @@ namespace Formular_Specification
 
             //hiển thị lên màn hình kết quả
             if (!string.IsNullOrEmpty(txtClassName.Text))
-                txtOutput.Text = "using System;\n using System.IO;\n using System.Text;\n" + "namespace FomularSpecification\n"+"{\n" +"\tpublic class "+ txtClassName.Text+"\n\t{\n";
-            else txtOutput.Text = "using System;\n using System.IO;\n using System.Text;\n" + "namespace FomularSpecification\n"+"{\n" +"\tpublic class "+ FunctionName+"\n\t{\n";
+                txtOutput.Text = "using System;\nusing System.IO;\nusing System.Text;\n" + "namespace FomularSpecification\n"+"{\n" +"\tpublic class "+ txtClassName.Text+"\n\t{\n";
+            else txtOutput.Text = "using System;\nusing System.IO;\nusing System.Text;\n" + "namespace FomularSpecification\n"+"{\n" +"\tpublic class "+ FunctionName+"\n\t{\n";
             txtOutput.Text += GenerateInput(InputVariable, OutputVariable, FunctionName, ref param, ref MainInputCode, ref InputFunctioncall, ref FunctionCall);
 
             //Đặt tên hàm
@@ -1161,19 +1167,18 @@ namespace Formular_Specification
                 
 
                 if (head.Contains(length))
-                    Func += "\t\t\tfor (int " + variable + " = " + head + "; " + variable + " >= " + tail + "; " + variable + "--)\n";
-                else Func += "\t\t\tfor (int " + variable + " = " + head + "; " + variable + " <= " + tail + "; " + variable + "++)\n";
+                    Func += "\t\t\tfor (int " + variable + " = " + head + "; " + variable + " >= " + tail + "; " + variable + "--){\n";
+                else Func += "\t\t\tfor (int " + variable + " = " + head + "; " + variable + " <= " + tail + "; " + variable + "++){\n";
 
                 //Chinh tab
-                for (int j = 0; j < i; j++)
+                for (int j = 0; j <= i; j++)
                 {
                     Func += "\t";
                 }
-                Func += "\t\t\t{\n";
-                for (int j = 0; j <= i; j++)
-                {
-                    Func += "\t\t\t\t";
-                }
+                //for (int j = 0; j <= i; j++)
+                //{
+                //    Func += "\t\t\t\t";
+                //}
             }
             string condition = RemoveBracketMeaningless(lstCondition[lstCondition.Count - 1]);
 
@@ -1207,58 +1212,58 @@ namespace Formular_Specification
             if (lstCondition.Count == 2 && lstCondition[0].Contains("VM")//Chi co 1 for
                 || lstCondition.Count == 3 && lstCondition[0].Contains("VM") && lstCondition[1].Contains("VM")) //Co 2 for  va ca 2 deu la Voi Moi
             {
-                Func += "if (!(" + condition + ")){\n";
+                Func += "\t\t\tif (!(" + condition + "))\n";
                 for (int i = 0; i < lstCondition.Count; i++)
                 {
-                    Func += "\t\t";
+                    Func += "\t";
                 }
-                Func += "return false;\n";
+                Func += "\t\t\treturn false;";
                 for (int i = 0; i < lstCondition.Count-1; i++)
                 {
                     Func += "\t\t\t";
                 }
                 if (lstCondition.Count == 3)
-                    Func += "\t}\n\t}\n\t\t\t}\n\t\t\treturn true;";
-                else Func += "\t}\n\t\t\t}\n\t\t\treturn true;";
+                    Func += "\n\t\t\t\t}\n\t\t\t}\n\t\t\treturn true;";
+                else Func += "\n\t\t\t}\n\t\t\treturn true;";
             } //TT TT hoac TT
             else if (lstCondition.Count == 2 && lstCondition[0].Contains("TT")//Chi co 1 for
                 || lstCondition.Count == 3 && lstCondition[0].Contains("TT") && lstCondition[1].Contains("TT")) //Co 2 for  va ca 2 deu la Ton Tai
             {
-                Func += "\t\tif (" + condition + "){\n";
+                Func += "\t\t\tif (" + condition + ")\n";
                 for (int i = 0; i < lstCondition.Count; i++)
                 {
                     Func += "\t";
                 }
-                Func += "\treturn true;\n";
+                Func += "\t\t\treturn true;\n";
                 for (int i = 0; i < lstCondition.Count - 1; i++)
                 {
                     Func += "\t";
                 }
                 if (lstCondition.Count == 3)
-                    Func += "\t\t}\n\t\t\t}\n}\n\t\treturn false;";
-                else Func += "}\n}\nreturn false;";
+                    Func += "\t\t}\n\t\t\t}\n\t\t\treturn false;";
+                else Func += "\t\t}\n\t\t\treturn false;";
             }
             else if (lstCondition.Count == 3 && lstCondition[0].Contains("VM") && lstCondition[1].Contains("TT")) //Co 2 for va MV TT
             {
-                Func += "\t\tif (" + condition + "){" +
-                    "\n\t\t\tbreak;" +
-                    "\n\t\tif (" + lstVariable[lstVariable.Count - 1] +" == " + tail +"){" +
-                    "\n\t\t\treturn false;" +
-                    "\n\t\t}\n\t" +
-                    "}\n" +
-                    "}\n" +
-                    "return true;";
+                Func += "\t\t\tif (" + condition + ")" +
+                    "\n\t\t\t\t\t\tbreak;" +
+                    "\n\t\t\t\t\tif (" + lstVariable[lstVariable.Count - 1] +" == " + tail +"){" +
+                    "\n\t\t\t\t\t\treturn false;" +
+                    "\n\t\t\t\t\t}\n" +
+                    "\t\t\t\t}\n" +
+                    "\t\t\t}\n" +
+                    "\t\t\treturn true;";
             }
             else if (lstCondition.Count == 3 && lstCondition[0].Contains("TT") && lstCondition[1].Contains("VM")) //Co 2 for va TT MV
             {
-                Func += "if (!(" + condition + ")){" +
-                    "\n\t\t\tbreak;" +
-                    "\n\t\tif (" + lstVariable[lstVariable.Count - 1] + " == " + tail + "){" +
-                    "\n\t\t\treturn true;" +
-                    "\n\t\t}\n\t" +
-                    "}\n" +
-                    "}\n" +
-                    "return false;";
+                Func += "\t\t\tif (!(" + condition + "))" +
+                    "\n\t\t\t\t\t\tbreak;" +
+                    "\n\t\t\t\t\tif (" + lstVariable[lstVariable.Count - 1] + " == " + tail + "){" +
+                    "\n\t\t\t\t\t\treturn true;" +
+                    "\n\t\t\t\t\t}\n" +
+                    "\t\t\t\t}\n" +
+                    "\t\t\t}\n" +
+                    "\t\t\treturn false;";
             }
 
             return Func;
@@ -1742,6 +1747,11 @@ namespace Formular_Specification
         private void btnCut_Click(object sender, EventArgs e)
         {
             txtInput.Cut();
+        }
+
+        private void MenuExit_Click(object sender, EventArgs e)
+        {
+            Close();
         }
 
         private void MenuAboutTeam_Click(object sender, EventArgs e)
