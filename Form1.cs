@@ -321,7 +321,7 @@ namespace Formular_Specification
 
             string temp = InputVariable;
             int iTwoDot = temp.IndexOf(":");
-            int input = 0;
+            int input = 0; //biến số lượng input của bài
 
             while (iTwoDot >= 0) //Đếm số lượng biến đầu vào
             {
@@ -378,7 +378,7 @@ namespace Formular_Specification
                     string ivalue = Input[i].Substring(0, itwodot);  //lấy biến trước :
                     string itype = Input[i].Substring(itwodot);  //lấy kiểu dữ liệu sau :
 
-                    if (!itype.Contains("*"))
+                    if (!itype.Contains("*")) //là biến bth
                     {
                         if (itype.Contains("N") || itype.Contains("Z"))
                         {
@@ -460,8 +460,8 @@ namespace Formular_Specification
                                     + ivalue + "=char.Parse(Console.ReadLine());\n";                                
                             }
                         }
-                    }
-                    else if (itype.Contains("*"))
+                    } 
+                    else if (itype.Contains("*")) //là mảng
                     {
                         if (itype.Contains("N") || itype.Contains("Z"))
                         {
@@ -475,7 +475,7 @@ namespace Formular_Specification
                         {
                             arr[5] += "\t\t\tbool[] " + ivalue + " = new bool [100];\n";
                         }
-                        else if (itype.Contains("char"))
+                        else if (itype.Contains("char")) //char* = string
                         {
                             if (arr[4] == "")
                             {
@@ -494,10 +494,10 @@ namespace Formular_Specification
                                 Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n";
                             }
                         }
-                    }
+                    }  
 
 
-                    if (i == Input.Length - 1)
+                    if (i == Input.Length - 1)  //kết thúc vòng lặp
                     {
                         if (arr[0] != "") arr[0] += ";" + "\n";
                         if (arr[1] != "") arr[1] += ";" + "\n";
@@ -506,20 +506,20 @@ namespace Formular_Specification
                         if (arr[4] != "") arr[4] += ";" + "\n";
                     }
 
-                    input--; //input = 0
-                    if (input == 0)
+                    input--; //input của bài - 1
+
+                    if (input == 0) //hết input của bài
                     {
-                        //MessageBox.Show(HamNhap);
                         HamNhap = HamNhap.Remove(HamNhap.Length - 1);
-                        HamNhap += ")";
+                        HamNhap += ")";   //hàm nhập
 
                         InputFunctionCall = InputFunctionCall.Remove(InputFunctionCall.Length - 1);
-                        InputFunctionCall += ")";
+                        InputFunctionCall += ")";  //gọi hàm từ main
 
                         FunctionCall = FunctionCall.Remove(FunctionCall.Length - 1);
-                        FunctionCall += ")";
+                        FunctionCall += ")";  //tham số truyền vào khi gọi từ main
 
-                        param = param.Remove(param.Length - 1);
+                        param = param.Remove(param.Length - 1);  //tham số truyền vào khi khởi tạo hàm
                     }
 
                 }
@@ -547,9 +547,9 @@ namespace Formular_Specification
                     string fnvalue = Input[Input.Length - 1].Substring(0, fntwodot);  //lấy biến trước :
                     string fntype = Input[Input.Length - 1].Substring(fntwodot);  //lấy kiểu dữ liệu sau :
 
-                    if (!itype.Contains("*"))
+                    if (!itype.Contains("*")) //là biến số lượng
                     {
-                        if (jtype.Contains("*"))
+                        if (jtype.Contains("*"))  //kế tiếp là mảng
                         {
                             if (arr[0] == "")
                             {
@@ -566,53 +566,53 @@ namespace Formular_Specification
                             if (jtype.Contains("N") || jtype.Contains("Z"))
                             {
                                 arr[5] += "\t\t\tint[] "+jvalue+" = new int [100];\n";
-                                Code += "\t\t\t" + jvalue + " = new int[" + ivalue + "];\n"
-                                + "\t\t\tfor (int i=0;i<" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
-                                "\t\t\t\tConsole.Write(\"Nhap phan tu vao mang: \");\n" +
+                                Code += "\t\t\t" + jvalue + " = new int[" + ivalue + " + 1];\n"
+                                + "\t\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
+                                "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i" + ");\n" +
                                     "\t\t\t\t" + jvalue + "[i]" + "=Int32.Parse(Console.ReadLine());\n\t\t\t}\n";
                                 if (input > 0)
                                 {
                                     FunctionCall += ivalue + ",";
-                                    InputFunctionCall += "ref " + ivalue + "," + jvalue + ",";
-                                    HamNhap += "ref int " + ivalue + "," + "int[] " + jvalue + ",";
-                                    param += "int " + ivalue + "," + "int[] " + jvalue + ",";
+                                    InputFunctionCall += "ref " + ivalue + ",ref " + jvalue + ",";
+                                    HamNhap += "ref int " + ivalue + "," + "ref int[] " + jvalue + ",";
+                                    param += "int " + ivalue + "," + " int[] " + jvalue + ",";
                                 }
                             }
                             else if (jtype.Contains("Q") || jtype.Contains("R"))
                             {
                                 arr[5] += "\t\t\tfloat[] " + jvalue + " = new float [100];\n";
-                                Code += "\t\t\t" + jvalue + " = new float[" + ivalue + "];\n"
-                                    + "\t\t\tfor (int i=0;i<" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
-                                    "\t\t\t\tConsole.Write(\"Nhap phan tu vao mang: \");\n" +
+                                Code += "\t\t\t" + jvalue + " = new float[" + ivalue + " + 1];\n"
+                                    + "\t\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
+                                    "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i" + ");\n" +
                                     "\t\t\t\t" + jvalue + "[i]" + "=float.Parse(Console.ReadLine());\n\t\t\t}\n";
                                 if (input > 0)
                                 {
                                     FunctionCall += ivalue + ",";
-                                    InputFunctionCall += "ref " + ivalue + "," + jvalue + ",";
-                                    HamNhap += "ref int " + ivalue + "," + "float[] " + jvalue + ",";
-                                    param += "int " + ivalue + "," + "float[] " + jvalue + ",";
+                                    InputFunctionCall += "ref " + ivalue + ",ref " + jvalue + ",";
+                                    HamNhap += "ref int " + ivalue + "," + "ref float[] " + jvalue + ",";
+                                    param += "int " + ivalue + "," + " float[] " + jvalue + ",";
                                 }
                             }
                             else if (jtype.Contains("B"))
                             {
                                 arr[5] += "\t\t\tbool[] " + jvalue + " = new bool [100];\n";
-                                Code += "\t\t\t" + jvalue + " = new bool[" + ivalue + "];\n"
-                                    + "\t\t\tfor (int i=0;i<" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
-                                    "\t\t\t\tConsole.Write(\"Nhap phan tu vao mang: \");\n" +
+                                Code += "\t\t\t" + jvalue + " = new bool[" + ivalue + " + 1];\n"
+                                    + "\t\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
+                                    "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i"  + " \");;\n" +
                                     "\t\t\t\t" + jvalue + "[i]" + "=bool.Parse(Console.ReadLine());\n\t\t\t}\n";
                                 if (input > 0)
                                 {
                                     FunctionCall += ivalue + ",";
-                                    InputFunctionCall += "ref " + ivalue + "," + jvalue + ",";
-                                    HamNhap += "ref int " + ivalue + "," + "bool[] " + jvalue + ",";
+                                    InputFunctionCall += "ref " + ivalue + ",ref " + jvalue + ",";
+                                    HamNhap += "ref int " + ivalue + "," + "ref bool[] " + jvalue + ",";
                                     param += "int " + ivalue + "," + "bool[] " + jvalue + ",";
                                 }
                             }
 
 
-                            i++;
+                            i++;  //vì đã kiểm tra phần tử i + 1 nên skip i + 1
 
-                            if (i == Input.Length - 2)
+                            if (i == Input.Length - 2)  //kết thúc vòng lặp
                             {
                                 if (!fntype.Contains("*"))
                                 {
@@ -692,9 +692,9 @@ namespace Formular_Specification
                                 if (arr[4] != "") arr[4] += ";" + "\n";
                             }
 
-                            input-=2;
+                            input-=2;  //vì đã nhập hàm i + 1 nên bỏ qua 2 input
 
-                            if (input == 0)
+                            if (input == 0) 
                             {
                                 HamNhap = HamNhap.Remove(HamNhap.Length - 1);
                                 HamNhap += ")";
@@ -708,21 +708,22 @@ namespace Formular_Specification
                                 param = param.Remove(param.Length - 1);
                             }
                         }
-                        if (!jtype.Contains("*"))
+                        if (!jtype.Contains("*")) //kế tiếp vẫn là biến số lượng
                         {
-                            if (ztype.Contains("*"))
+                            if (ztype.Contains("*")) //kế tiếp nữa là mảng
                             {
+                                //đổi vị trí phần tử i + 1 và i + 2 đưa về dạng (biến sl, mảng, biến sl, mảng)
                                 string ztemp;
                                 ztemp = Input[i + 2];
                                 Input[i + 2] = Input[i + 1];
                                 Input[i + 1] = ztemp;
                                 i--;
-                            } else MessageBox.Show("Luồng nhập sai quy tắc");
+                            } else MessageBox.Show("Luồng nhập sai quy tắc"); 
                         }
                     }
-                    if (itype.Contains("*"))
+                    if (itype.Contains("*"))  //là mảng
                     {
-                        if (!jtype.Contains("*"))
+                        if (!jtype.Contains("*"))  //kế tiếp là biến số lượng
                         {
                             if (arr[0] == "")
                             {
@@ -733,58 +734,57 @@ namespace Formular_Specification
                                 arr[0] += "," + jvalue + " = 0";
                             }
 
-                            Code += "\t\t\tConsole.WriteLine(\"Nhap so phan tu cua mang " + ivalue + ": \");\n"
+                            Code += "\t\t\tConsole.Write(\"Nhap so phan tu cua mang " + ivalue + ": \");\n"
                                 + "\t\t\t" + jvalue + " = Int32.Parse(Console.ReadLine());\n";
                             if (itype.Contains("N") || itype.Contains("Z"))
                             {
                                 arr[5] += "\t\t\tint[] " + ivalue + " = new int [100];\n";
-                                Code += "\t\t\tint[] " + ivalue + " = new int[" + jvalue + "];\n"
-                                + "\t\t\tfor (int i=0;i<" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
-                                "\t\t\t\tConsole.WriteLine(\"Nhap phan tu vao mang: \");\n" +
-                                    "\t\t\t\t" + ivalue + "[i]" + "=Int32.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                Code += "\t\t\t" + ivalue + " = new int[" + jvalue + " + 1];\n"
+                                + "\t\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
+                                "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i" +  ");\n" +
+                                    "\t\t\t\t" + ivalue + "[i]" + "= Int32.Parse(Console.ReadLine());\n\t\t\t}\n";
                                 if (input > 0)
                                 {
                                     FunctionCall += jvalue + "," + ivalue + ",";
-                                    InputFunctionCall += "ref " + jvalue + "," + ivalue + ",";
-                                    HamNhap += "ref int " + jvalue + "," + " int[] " + ivalue + ",";
+                                    InputFunctionCall += "ref " + jvalue + ",ref " + ivalue + ",";
+                                    HamNhap += "ref int " + jvalue + "," + "ref int[] " + ivalue + ",";
                                     param += "int " + jvalue + "," + " int[] " + ivalue + ",";
                                 }
                             }
                             else if (itype.Contains("Q") || itype.Contains("R"))
                             {
                                 arr[5] += "\t\t\tfloat[] " + ivalue + " = new float [100];\n";
-                                Code += "\t\t\t" + ivalue + " = new float[" + jvalue + "];\n"
-                                    + "\t\t\tfor (int i=0;i<" + jvalue + ";i++)\n" + "\t\t\t{ \n" +
-                                    "\t\t\t\tConsole.WriteLine(\"Nhap phan tu vao mang: \");\n" +
-                                    "\t\t\t\t" + ivalue + "[i]" + "=float.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                Code += "\t\t\t" + ivalue + " = new float[" + jvalue + " + 1];\n"
+                                    + "\t\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t\t{ \n" +
+                                    "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i"  + ");\n" +
+                                    "\t\t\t\t" + ivalue + "[i]" + "= float.Parse(Console.ReadLine());\n\t\t\t}\n";
                                 if (input > 0)
                                 {
                                     FunctionCall += jvalue + "," + ivalue + ",";
-                                    InputFunctionCall += "ref " + jvalue + "," + ivalue + ",";
-                                    HamNhap += "ref int " + jvalue + "," + "float[] " + ivalue + ",";
-
+                                    InputFunctionCall += "ref " + jvalue + ",ref " + ivalue + ",";
+                                    HamNhap += "ref int " + jvalue + "," + "ref float[] " + ivalue + ",";
                                     param += "int " + jvalue + "," + "float[] " + ivalue + ",";
                                 }
                             }
                             else if (itype.Contains("B"))
                             {
                                 arr[5] += "\t\t\tbool[] " + ivalue + " = new bool [100];\n";
-                                Code += "\t\t\tbool[] " + ivalue + " = new bool[" + jvalue + "];\n"
-                                    + "\t\t\tfor (int i=0;i<" + jvalue + ";i++)\n" + "\t\t\t{ \n" +
-                                    "\t\t\t\tConsole.WriteLine(\"Nhap phan tu vao mang: \");\n" +
-                                    "\t\t\t\t" + ivalue + "[i]" + "=bool.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                Code += "\t\t\t" + ivalue + " = new bool[" + jvalue + " + 1];\n"
+                                    + "\t\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t\t{ \n" +
+                                    "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i" + ");\n" +
+                                    "\t\t\t\t" + ivalue + "[i]" + "= bool.Parse(Console.ReadLine());\n\t\t\t}\n";
                                 if (input > 0)
                                 {
                                     FunctionCall += jvalue + "," + ivalue + ",";
-                                    InputFunctionCall += "ref " + jvalue + "," + ivalue + ",";
-                                    HamNhap += "ref int " + jvalue + "," + "[] bool " + ivalue + ",";
-                                    param += "int " + jvalue + "," + "[] bool " + ivalue + ",";
+                                    InputFunctionCall += "ref " + jvalue + ",ref " + ivalue + ",";
+                                    HamNhap += "ref int " + jvalue + "," + "ref bool[] " + ivalue + ",";
+                                    param += "int " + jvalue + "," + "bool[] " + ivalue + ",";
                                 }
                             }
 
-                            i++;
+                            i++; //do đã kiểm tra phần tử i + 1 nên skip i + 1
 
-                            if (i == Input.Length - 2)
+                            if (i == Input.Length - 2)  //kết thúc vòng lặp
                             {
                                 if (!fntype.Contains("*"))
                                 {
@@ -853,9 +853,9 @@ namespace Formular_Specification
                                 if (arr[4] != "") arr[4] += ";" + "\n";
                             }
 
-                            input -= 2;
+                            input -= 2;  //vì đã nhập hàm i + 1 nên bỏ qua 2 input
 
-                            if (input == 0)
+                            if (input == 0)  //hết input
                             {
                                 HamNhap = HamNhap.Remove(HamNhap.Length - 1);
                                 HamNhap += ")";
@@ -869,10 +869,11 @@ namespace Formular_Specification
                                 param = param.Remove(param.Length - 1);
                             }
                         }
-                        if (jtype.Contains("*"))
+                        if (jtype.Contains("*"))  //kế tiếp vẫn là mảng
                         {
-                            if (!ztype.Contains("*"))
+                            if (!ztype.Contains("*"))    //kế tiếp nữa là biến số lượng
                             {
+                                //đổi vị trí phần tử i + 1 và i + 2, đưa về dạng (mảng,biến sl,mảng,biến sl)
                                 string ztemp;
                                 ztemp = Input[i + 2];
                                 Input[i + 2] = Input[i + 1];
@@ -884,8 +885,6 @@ namespace Formular_Specification
                     }
                 }
             }
-
-            //Code += arr[4];
 
             MainInputCode = arr[0] + arr[1] + arr[2] + arr[3] + arr[4] +arr[5]; 
             return HamNhap + "\n\t\t{\n" + Code + "\t\t}\n\n";
