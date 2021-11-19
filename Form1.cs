@@ -587,7 +587,7 @@ namespace Formular_Specification
                                     "\t\t\t\t" + jvalue + "[i]" + "=float.Parse(Console.ReadLine());\n\t\t\t}\n";
                                 if (input > 0)
                                 {
-                                    FunctionCall += ivalue + ",";
+                                    FunctionCall += ivalue + "," + jvalue + ",";
                                     InputFunctionCall += "ref " + ivalue + ",ref " + jvalue + ",";
                                     HamNhap += "ref int " + ivalue + "," + "ref float[] " + jvalue + ",";
                                     param += "int " + ivalue + "," + " float[] " + jvalue + ",";
@@ -1136,14 +1136,14 @@ namespace Formular_Specification
             //MessageBox.Show(s);
 
             //Tim ten bien do dai
-            index = arrSentence[0].LastIndexOf(")");
-            index = arrSentence[0].LastIndexOf(":", index);
-            int startIndex = arrSentence[0].LastIndexOf(",", index) + 1;
-            string length = arrSentence[0].Substring(startIndex, index - startIndex);
+            //index = arrSentence[0].LastIndexOf(")");
+            //index = arrSentence[0].LastIndexOf(":", index);
+            //int startIndex = arrSentence[0].LastIndexOf(",", index) + 1;
+            //string length = arrSentence[0].Substring(startIndex, index - startIndex);
             //Tim bien mang
-            index = arrSentence[0].LastIndexOf(":", startIndex);
-            startIndex = arrSentence[0].IndexOf("(") + 1;
-            string arr = arrSentence[0].Substring(startIndex, index - startIndex);
+            //index = arrSentence[0].LastIndexOf(":", startIndex);
+            //startIndex = arrSentence[0].IndexOf("(") + 1;
+            //string arr = arrSentence[0].Substring(startIndex, index - startIndex);
 
             //Luu tru diem ket thuc cua vong for cuoi
             string tail = "";
@@ -1163,9 +1163,7 @@ namespace Formular_Specification
                 bracket = lstCondition[i].IndexOf("}"); //Vi tri dau ngoac }
                 tail = lstCondition[i].Substring(index + 2, bracket - (index + 2)); //Phan duoi cua for //2 is length of '..'
 
-                
-
-                if (head.Contains(length))
+                if (isForReverse(head, tail, lstVariable))
                     Func += "\t\t\tfor (int " + variable + " = " + head + "; " + variable + " >= " + tail + "; " + variable + "--){\n";
                 else Func += "\t\t\tfor (int " + variable + " = " + head + "; " + variable + " <= " + tail + "; " + variable + "++){\n";
 
@@ -1182,11 +1180,17 @@ namespace Formular_Specification
             string condition = RemoveBracketMeaningless(lstCondition[lstCondition.Count - 1]);
 
             //Thay the 'a(i)' => 'a[i]'
-            index = condition.IndexOf(arr + "(");
+            List<char> lstCalculate = new List<char> { '/', '*', '-', '+', '%', '[', '(' }; 
+            index = condition.IndexOf("(");
             while (index != -1)
             {
-                condition = condition.Remove(index + arr.Length, 1);
-                condition = condition.Insert(index + arr.Length, "[");
+                if (lstCalculate.Contains(condition[index - 1]))
+                {
+                    index = condition.IndexOf("(", index + 1);
+                    continue;
+                }
+                condition = condition.Remove(index, 1);
+                condition = condition.Insert(index, "[");
 
                 int bracketCount = -1; //Thieu mot dau ngoac dong tu vi tri hien tai
                 for (int i = index + 2; i < condition.Length; i++) //2 is length of 'a['
@@ -1202,7 +1206,7 @@ namespace Formular_Specification
                         break;
                     }
                 }
-                index = condition.IndexOf(arr + "(");
+                index = condition.IndexOf("(");
             }
 
             condition = insertEqual(condition);
@@ -1266,6 +1270,31 @@ namespace Formular_Specification
             }
 
             return Func;
+        }
+
+        private bool isForReverse(string head, string tail, List<string> lstVariable)
+        {
+            int result;
+            if (int.TryParse(head, out result))
+                return false;
+            if (int.TryParse(tail, out result))
+                return true;
+
+            Regex r = new Regex("([ \\t{}();,:*+/%-])");
+
+            string[] arrFor = r.Split(head);
+            for (int i = 0; i < arrFor.Length; i++)
+            {
+                if (lstVariable.Contains(arrFor[i]))
+                    return false;
+            }
+            arrFor = r.Split(tail);
+            for (int i = 0; i < arrFor.Length; i++)
+            {
+                if (lstVariable.Contains(arrFor[i]))
+                    return true;
+            }
+            return true;
         }
 
         /// <summary>
