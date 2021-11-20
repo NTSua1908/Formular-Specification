@@ -716,7 +716,6 @@ namespace Formular_Specification
 
                                 if (input > 0)
                                 {
-<<<<<<< HEAD
                                     if (currentLanguage == Language.CSharp)
                                     {
                                         FunctionCall += ivalue + "," + jvalue + ",";
@@ -724,12 +723,6 @@ namespace Formular_Specification
                                         HamNhap += "ref int " + ivalue + "," + "ref float[] " + jvalue + ",";
                                         param += "int " + ivalue + "," + " float[] " + jvalue + ",";
                                     }
-=======
-                                    FunctionCall += ivalue + "," + jvalue + ",";
-                                    InputFunctionCall += "ref " + ivalue + ",ref " + jvalue + ",";
-                                    HamNhap += "ref int " + ivalue + "," + "ref float[] " + jvalue + ",";
-                                    param += "int " + ivalue + "," + " float[] " + jvalue + ",";
->>>>>>> 79d381d0e7f3157276111fd987737e15715d8ddc
                                 }
                             }
                             else if (jtype.Contains("B"))
