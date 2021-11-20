@@ -132,6 +132,7 @@
             this.MenuExit.Name = "MenuExit";
             this.MenuExit.Size = new System.Drawing.Size(196, 22);
             this.MenuExit.Text = "Exit";
+            this.MenuExit.Click += new System.EventHandler(this.MenuExit_Click);
             // 
             // editToolStripMenuItem
             // 

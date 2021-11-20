@@ -28,8 +28,8 @@ namespace Formular_Specification
         //string[] Calculation = { "+", "-", "*", "/", "%", ">", "<", "=", "!=", ">=", "<=", "!", "&&", "||"};
 
         string[] codeKeywords = { "using", "namespace", "class", "static", "if", "for", 
-            "return", "void", "public", "private", "protected", "float", "int", "Int32","bool", 
-            "string", "Console" };
+            "return", "void", "public", "private", "protected", "ref", "float", "int", "Int32","bool", 
+            "string", "Console", "float[]", "int[]", "string[]"};
         string[] function = { "Write", "WriteLine", "Parse", "Readline"};
 
         Stack<string> undo;
@@ -112,6 +112,12 @@ namespace Formular_Specification
 
         private void btnBuild_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrEmpty(txtOutput.Text))
+            {
+                MessageBox.Show("Invalid Input");
+                return;
+            }
+
             string ExeName = "";
             //Luu code vao file text
             if (string.IsNullOrEmpty(txtExeName.Text))
@@ -710,6 +716,7 @@ namespace Formular_Specification
 
                                 if (input > 0)
                                 {
+<<<<<<< HEAD
                                     if (currentLanguage == Language.CSharp)
                                     {
                                         FunctionCall += ivalue + "," + jvalue + ",";
@@ -717,6 +724,12 @@ namespace Formular_Specification
                                         HamNhap += "ref int " + ivalue + "," + "ref float[] " + jvalue + ",";
                                         param += "int " + ivalue + "," + " float[] " + jvalue + ",";
                                     }
+=======
+                                    FunctionCall += ivalue + "," + jvalue + ",";
+                                    InputFunctionCall += "ref " + ivalue + ",ref " + jvalue + ",";
+                                    HamNhap += "ref int " + ivalue + "," + "ref float[] " + jvalue + ",";
+                                    param += "int " + ivalue + "," + " float[] " + jvalue + ",";
+>>>>>>> 79d381d0e7f3157276111fd987737e15715d8ddc
                                 }
                             }
                             else if (jtype.Contains("B"))
@@ -1526,7 +1539,7 @@ namespace Formular_Specification
                     int startIndex = Func.LastIndexOf("return");
                     int endIndex = Func.LastIndexOf(";");
                     string finalReturn = Func.Substring(startIndex, endIndex - startIndex);
-                    Func += finalReturn + ";";
+                    Func += "\t\t\t" + finalReturn + ";";
                 }
             }
 
@@ -1567,14 +1580,14 @@ namespace Formular_Specification
             //MessageBox.Show(s);
 
             //Tim ten bien do dai
-            index = arrSentence[0].LastIndexOf(")");
-            index = arrSentence[0].LastIndexOf(":", index);
-            int startIndex = arrSentence[0].LastIndexOf(",", index) + 1;
-            string length = arrSentence[0].Substring(startIndex, index - startIndex);
+            //index = arrSentence[0].LastIndexOf(")");
+            //index = arrSentence[0].LastIndexOf(":", index);
+            //int startIndex = arrSentence[0].LastIndexOf(",", index) + 1;
+            //string length = arrSentence[0].Substring(startIndex, index - startIndex);
             //Tim bien mang
-            index = arrSentence[0].LastIndexOf(":", startIndex);
-            startIndex = arrSentence[0].IndexOf("(") + 1;
-            string arr = arrSentence[0].Substring(startIndex, index - startIndex);
+            //index = arrSentence[0].LastIndexOf(":", startIndex);
+            //startIndex = arrSentence[0].IndexOf("(") + 1;
+            //string arr = arrSentence[0].Substring(startIndex, index - startIndex);
 
             //Luu tru diem ket thuc cua vong for cuoi
             string tail = "";
@@ -1594,31 +1607,34 @@ namespace Formular_Specification
                 bracket = lstCondition[i].IndexOf("}"); //Vi tri dau ngoac }
                 tail = lstCondition[i].Substring(index + 2, bracket - (index + 2)); //Phan duoi cua for //2 is length of '..'
 
-                
-
-                if (head.Contains(length))
-                    Func += "\t\t\tfor (int " + variable + " = " + head + "; " + variable + " >= " + tail + "; " + variable + "--)\n";
-                else Func += "\t\t\tfor (int " + variable + " = " + head + "; " + variable + " <= " + tail + "; " + variable + "++)\n";
+                if (isForReverse(head, tail, lstVariable))
+                    Func += "\t\t\tfor (int " + variable + " = " + head + "; " + variable + " >= " + tail + "; " + variable + "--){\n";
+                else Func += "\t\t\tfor (int " + variable + " = " + head + "; " + variable + " <= " + tail + "; " + variable + "++){\n";
 
                 //Chinh tab
-                for (int j = 0; j < i; j++)
+                for (int j = 0; j <= i; j++)
                 {
                     Func += "\t";
                 }
-                Func += "\t\t\t{\n";
-                for (int j = 0; j <= i; j++)
-                {
-                    Func += "\t\t\t\t";
-                }
+                //for (int j = 0; j <= i; j++)
+                //{
+                //    Func += "\t\t\t\t";
+                //}
             }
             string condition = RemoveBracketMeaningless(lstCondition[lstCondition.Count - 1]);
 
             //Thay the 'a(i)' => 'a[i]'
-            index = condition.IndexOf(arr + "(");
+            List<char> lstCalculate = new List<char> { '/', '*', '-', '+', '%', '[', '(' }; 
+            index = condition.IndexOf("(");
             while (index != -1)
             {
-                condition = condition.Remove(index + arr.Length, 1);
-                condition = condition.Insert(index + arr.Length, "[");
+                if (lstCalculate.Contains(condition[index - 1]))
+                {
+                    index = condition.IndexOf("(", index + 1);
+                    continue;
+                }
+                condition = condition.Remove(index, 1);
+                condition = condition.Insert(index, "[");
 
                 int bracketCount = -1; //Thieu mot dau ngoac dong tu vi tri hien tai
                 for (int i = index + 2; i < condition.Length; i++) //2 is length of 'a['
@@ -1634,7 +1650,7 @@ namespace Formular_Specification
                         break;
                     }
                 }
-                index = condition.IndexOf(arr + "(");
+                index = condition.IndexOf("(");
             }
 
             condition = insertEqual(condition);
@@ -1643,61 +1659,86 @@ namespace Formular_Specification
             if (lstCondition.Count == 2 && lstCondition[0].Contains("VM")//Chi co 1 for
                 || lstCondition.Count == 3 && lstCondition[0].Contains("VM") && lstCondition[1].Contains("VM")) //Co 2 for  va ca 2 deu la Voi Moi
             {
-                Func += "if (!(" + condition + ")){\n";
+                Func += "\t\t\tif (!(" + condition + "))\n";
                 for (int i = 0; i < lstCondition.Count; i++)
                 {
-                    Func += "\t\t";
+                    Func += "\t";
                 }
-                Func += "return false;\n";
+                Func += "\t\t\treturn false;";
                 for (int i = 0; i < lstCondition.Count-1; i++)
                 {
                     Func += "\t\t\t";
                 }
                 if (lstCondition.Count == 3)
-                    Func += "\t}\n\t}\n\t\t\t}\n\t\t\treturn true;";
-                else Func += "\t}\n\t\t\t}\n\t\t\treturn true;";
+                    Func += "\n\t\t\t\t}\n\t\t\t}\n\t\t\treturn true;";
+                else Func += "\n\t\t\t}\n\t\t\treturn true;";
             } //TT TT hoac TT
             else if (lstCondition.Count == 2 && lstCondition[0].Contains("TT")//Chi co 1 for
                 || lstCondition.Count == 3 && lstCondition[0].Contains("TT") && lstCondition[1].Contains("TT")) //Co 2 for  va ca 2 deu la Ton Tai
             {
-                Func += "\t\tif (" + condition + "){\n";
+                Func += "\t\t\tif (" + condition + ")\n";
                 for (int i = 0; i < lstCondition.Count; i++)
                 {
                     Func += "\t";
                 }
-                Func += "\treturn true;\n";
+                Func += "\t\t\treturn true;\n";
                 for (int i = 0; i < lstCondition.Count - 1; i++)
                 {
                     Func += "\t";
                 }
                 if (lstCondition.Count == 3)
-                    Func += "\t\t}\n\t\t\t}\n}\n\t\treturn false;";
-                else Func += "}\n}\nreturn false;";
+                    Func += "\t\t}\n\t\t\t}\n\t\t\treturn false;";
+                else Func += "\t\t}\n\t\t\treturn false;";
             }
             else if (lstCondition.Count == 3 && lstCondition[0].Contains("VM") && lstCondition[1].Contains("TT")) //Co 2 for va MV TT
             {
-                Func += "\t\tif (" + condition + "){" +
-                    "\n\t\t\tbreak;" +
-                    "\n\t\tif (" + lstVariable[lstVariable.Count - 1] +" == " + tail +"){" +
-                    "\n\t\t\treturn false;" +
-                    "\n\t\t}\n\t" +
-                    "}\n" +
-                    "}\n" +
-                    "return true;";
+                Func += "\t\t\tif (" + condition + ")" +
+                    "\n\t\t\t\t\t\tbreak;" +
+                    "\n\t\t\t\t\tif (" + lstVariable[lstVariable.Count - 1] +" == " + tail +"){" +
+                    "\n\t\t\t\t\t\treturn false;" +
+                    "\n\t\t\t\t\t}\n" +
+                    "\t\t\t\t}\n" +
+                    "\t\t\t}\n" +
+                    "\t\t\treturn true;";
             }
             else if (lstCondition.Count == 3 && lstCondition[0].Contains("TT") && lstCondition[1].Contains("VM")) //Co 2 for va TT MV
             {
-                Func += "if (!(" + condition + ")){" +
-                    "\n\t\t\tbreak;" +
-                    "\n\t\tif (" + lstVariable[lstVariable.Count - 1] + " == " + tail + "){" +
-                    "\n\t\t\treturn true;" +
-                    "\n\t\t}\n\t" +
-                    "}\n" +
-                    "}\n" +
-                    "return false;";
+                Func += "\t\t\tif (!(" + condition + "))" +
+                    "\n\t\t\t\t\t\tbreak;" +
+                    "\n\t\t\t\t\tif (" + lstVariable[lstVariable.Count - 1] + " == " + tail + "){" +
+                    "\n\t\t\t\t\t\treturn true;" +
+                    "\n\t\t\t\t\t}\n" +
+                    "\t\t\t\t}\n" +
+                    "\t\t\t}\n" +
+                    "\t\t\treturn false;";
             }
 
             return Func;
+        }
+
+        private bool isForReverse(string head, string tail, List<string> lstVariable)
+        {
+            int result;
+            if (int.TryParse(head, out result))
+                return false;
+            if (int.TryParse(tail, out result))
+                return true;
+
+            Regex r = new Regex("([ \\t{}();,:*+/%-])");
+
+            string[] arrFor = r.Split(head);
+            for (int i = 0; i < arrFor.Length; i++)
+            {
+                if (lstVariable.Contains(arrFor[i]))
+                    return false;
+            }
+            arrFor = r.Split(tail);
+            for (int i = 0; i < arrFor.Length; i++)
+            {
+                if (lstVariable.Contains(arrFor[i]))
+                    return true;
+            }
+            return true;
         }
 
         /// <summary>
@@ -2178,6 +2219,11 @@ namespace Formular_Specification
         private void btnCut_Click(object sender, EventArgs e)
         {
             txtInput.Cut();
+        }
+
+        private void MenuExit_Click(object sender, EventArgs e)
+        {
+            Close();
         }
 
         private void MenuAboutTeam_Click(object sender, EventArgs e)
