@@ -1536,7 +1536,12 @@ namespace Formular_Specification
                 }
             }
 
-            txtOutput.Text = Func;
+            //txtOutput.Text = Func;
+            if (currentLanguage == Language.Java)
+            {
+                Func = Func.Remove(0, 1);
+                Func = Func.Replace("\n\t", "\n");
+            }
 
             return Func;
         }
