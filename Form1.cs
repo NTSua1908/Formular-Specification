@@ -125,7 +125,7 @@ namespace Formular_Specification
             else ExeName = txtExeName.Text;
 
             if(currentLanguage == Language.CSharp)
-            File.WriteAllText(ExeName + ".cs", txtOutput.Text);
+                File.WriteAllText(ExeName + ".cs", txtOutput.Text);
             else if(currentLanguage == Language.Java)
                 File.WriteAllText(ExeName + ".java", txtOutput.Text);
 
@@ -137,7 +137,8 @@ namespace Formular_Specification
 
         void RunJava(string filename)
         {
-            string text = "path =%path%;" + JavaPath + "@"+filename + "@pause";
+            string text = "path =%path%;" + JavaPath + 
+                "@javac "+filename + ".java@java " + filename +"@pause";
             text = text.Replace("@", System.Environment.NewLine);
             File.WriteAllText(Application.StartupPath + "\\Run.bat", text);
 
@@ -1704,6 +1705,12 @@ namespace Formular_Specification
                     "\t\t\t\t}\n" +
                     "\t\t\t}\n" +
                     "\t\t\treturn false;";
+            }
+
+            if (currentLanguage == Language.Java)
+            {
+                Func = Func.Remove(0, 1);
+                Func = Func.Replace("\n\t", "\n");
             }
 
             return Func;
