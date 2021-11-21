@@ -1579,9 +1579,31 @@ namespace Formular_Specification
         {
             //Tìm vị trí bắt đầu của tu đang xét
             int StartIndex = txtInput.SelectionStart - 1;
+            int index = txtInput.SelectionStart;
+            string currentWord;
+            currentWord = getCurrentWord(ref StartIndex);
+            HighlightCurrentWord(StartIndex, currentWord);
+            if (index > 0 &&
+                index != txtInput.Text.Length &&
+                txtInput.Text[index -1] == ' ')
+            {
+                //txtInput.SelectionStart = index + 1;
+                StartIndex = index - 1;
+                //txtOutput.Text += currentWord + "\n";
+                StartIndex = Math.Min(txtInput.Text.LastIndexOf(' ', StartIndex), txtInput.Text.LastIndexOf('\n', StartIndex));
+                if (StartIndex == -1)
+                    StartIndex = 0;
+                currentWord = txtInput.Text.Substring(StartIndex, index - StartIndex - 1);
+                //txtOutput.Text += currentWord + "\n";
+                HighlightCurrentWord(StartIndex, currentWord);
+            }
+        }
+
+        private string getCurrentWord(ref int StartIndex)
+        {
             while (StartIndex >= 0)
             {
-                if (txtInput.Text[StartIndex] == '\n' || !char.IsLetter(txtInput.Text[StartIndex]))
+                if (txtInput.Text[StartIndex] == '\n' || txtInput.Text[StartIndex] == ' ' || !char.IsLetter(txtInput.Text[StartIndex]))
                 {
                     StartIndex++;
                     break;
@@ -1595,24 +1617,26 @@ namespace Formular_Specification
             int EndIndex = txtInput.SelectionStart;
             while (EndIndex < txtInput.Text.Length)
             {
-                if (txtInput.Text[EndIndex] == '\n' || !char.IsLetter(txtInput.Text[EndIndex]))
+                if (txtInput.Text[EndIndex] == '\n' || txtInput.Text[EndIndex] == ' ' || !char.IsLetter(txtInput.Text[EndIndex]))
                     break;
                 EndIndex++;
             }
 
 
             //lay tu hien tai
-            string currentWord = txtInput.Text.Substring(StartIndex, EndIndex - StartIndex);
-            //MessageBox.Show(currentWord);
+            return txtInput.Text.Substring(StartIndex, EndIndex - StartIndex);
+        }
 
+        private void HighlightCurrentWord(int StartIndex, string currentWord)
+        {
             txtInput.SelectionStart = StartIndex;
             txtInput.SelectionLength = currentWord.Length;
             if (keywords.Contains(currentWord))
             {
-                
+
                 txtInput.SelectionColor = Color.Blue;
                 txtInput.SelectionFont = new Font("Courier New", 12, FontStyle.Bold);
-            } 
+            }
             else if (variable.Contains(currentWord))
             {
                 txtInput.SelectionColor = Color.Red;
