@@ -58,7 +58,6 @@
     <Compile Include="About.Designer.cs">
       <DependentUpon>About.cs</DependentUpon>
     </Compile>
-    <Compile Include="CmdService.cs" />
     <Compile Include="CompilerEnvironment.cs">
       <SubType>Form</SubType>
     </Compile>
