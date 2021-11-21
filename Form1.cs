@@ -123,19 +123,21 @@ namespace Formular_Specification
             if (string.IsNullOrEmpty(txtExeName.Text))
                 ExeName = FunctionName;
             else ExeName = txtExeName.Text;
+
+            if(currentLanguage == Language.CSharp)
             File.WriteAllText(ExeName + ".cs", txtOutput.Text);
+            else if(currentLanguage == Language.Java)
+                File.WriteAllText(ExeName + ".java", txtOutput.Text);
 
             //runcode
             if (currentLanguage == Language.Java)
-                RunJava("Input"); 
+                RunJava(ExeName); 
             else RunCSharp(ExeName);
         }
 
-        
-
         void RunJava(string filename)
         {
-            string text = "path =%path%;" + getJavaPath() + "@javac Input.java@java Input@pause";
+            string text = "path =%path%;" + JavaPath + "@"+filename + "@pause";
             text = text.Replace("@", System.Environment.NewLine);
             File.WriteAllText(Application.StartupPath + "\\Run.bat", text);
 
@@ -241,7 +243,8 @@ namespace Formular_Specification
             int indexInput = arrSentence[0].IndexOf("(");  
             int indexOutput = arrSentence[0].IndexOf(")");
             FunctionName = content.Substring(0, indexInput);   //lấy tên hàm
-            if (string.IsNullOrEmpty(txtClassName.Text))
+
+            if (string.IsNullOrEmpty(txtClassName.Text) || txtClassName.Text!=FunctionName)
                 txtClassName.Text = FunctionName;
             else FunctionName = txtClassName.Text;
             String InputVariable = arrSentence[0].Substring(indexInput + 1, indexOutput - indexInput - 1);  //lấy input
@@ -252,11 +255,20 @@ namespace Formular_Specification
             string FunctionCall = "";  //tham số truyền vào
 
             //hiển thị lên màn hình kết quả
-            if (!string.IsNullOrEmpty(txtClassName.Text))
-                txtOutput.Text = "using System;\nusing System.IO;\nusing System.Text;\n" + "namespace FomularSpecification\n"+"{\n" +"\tpublic class "+ txtClassName.Text+"\n\t{\n";
-            else txtOutput.Text = "using System;\nusing System.IO;\nusing System.Text;\n" + "namespace FomularSpecification\n"+"{\n" +"\tpublic class "+ FunctionName+"\n\t{\n";
-            txtOutput.Text += GenerateInput(InputVariable, OutputVariable, FunctionName, ref param, ref MainInputCode, ref InputFunctioncall, ref FunctionCall);
-
+            if (!string.IsNullOrEmpty(txtClassName.Text) && currentLanguage == Language.CSharp)
+            {
+                txtOutput.Text = "using System;\nusing System.IO;\nusing System.Text;\n" + "namespace FomularSpecification\n" + "{\n" + "\tpublic class " + txtClassName.Text + "\n\t{\n";
+            }           
+            if(currentLanguage == Language.CSharp) txtOutput.Text = "using System;\nusing System.IO;\nusing System.Text;\n" + "namespace FomularSpecification\n"+"{\n" +"\tpublic class "+ FunctionName+"\n\t{\n";
+            {
+                txtOutput.Text += GenerateInput(InputVariable, OutputVariable, FunctionName, ref param, ref MainInputCode, ref InputFunctioncall, ref FunctionCall);
+            }             
+            if (!string.IsNullOrEmpty(txtClassName.Text) && currentLanguage == Language.Java)
+            { 
+                txtOutput.Text = "import java.util.Scanner;\n" + "public class " + FunctionName + "\n{\n"; 
+            }
+            if (currentLanguage == Language.Java)
+                txtOutput.Text += GenerateInput(InputVariable, OutputVariable, FunctionName, ref param, ref MainInputCode, ref InputFunctioncall, ref FunctionCall);
             //Đặt tên hàm
             string OutputFunctionCall = "Xuat_"+FunctionName;  //hàm xuất
             string PreFunctionCall = "KiemTra_"+FunctionName+"("+FunctionCall;    //Hàm điều kiện
@@ -279,26 +291,6 @@ namespace Formular_Specification
             }
             return content;
         }
-
-        private string RemoveAllBracket(string content)
-        {
-            int OBracket = content.IndexOf("(");
-            while (OBracket >= 0)
-            {
-                content = content.Remove(OBracket, 1);
-                content = content.Insert(OBracket, " ");
-                OBracket = content.IndexOf("(", OBracket);
-            }
-            int CBracket = content.IndexOf(")");
-            while (CBracket >= 0)
-            {
-                content = content.Remove(CBracket, 1);
-                content = content.Insert(CBracket, " ");
-                CBracket = content.IndexOf(")", CBracket);
-            }
-            return content;
-        }
-
         private string RemoveAllSpace(string content)
         {
             int SpaceIndex = content.IndexOf(" ");
@@ -315,7 +307,8 @@ namespace Formular_Specification
         {
             String[] arr = new string [6];
             String[] Input = new string[100];
-            
+
+            string HamNhap = "";
             string Code = "";
             int type = 1;
 
@@ -356,8 +349,17 @@ namespace Formular_Specification
 
             arr[0] = arr[1] = arr[2] = arr[3]= arr[4]=arr[5]="";
 
-            string HamNhap = "\t\tpublic void Nhap_"+ FunctionName+"(";
-            InputFunctionCall = "Nhap_" + FunctionName + "(";
+            if (currentLanguage == Language.CSharp)
+            {
+                HamNhap = "\t\tpublic void Nhap_" + FunctionName + "(";
+                InputFunctionCall = "Nhap_" + FunctionName + "(";
+            }
+            else if (currentLanguage == Language.Java)
+            {
+                HamNhap = "\tpublic void Nhap_" + FunctionName + "()";
+                InputFunctionCall = "Nhap_" + FunctionName + "()";
+            }
+
             for (int i = 0; i < input; i++)
             {
                 int itwodot = Input[i].IndexOf(":");
@@ -384,80 +386,143 @@ namespace Formular_Specification
                         {
                             if (arr[0] == "")
                             {
-                                arr[0] += "\t\t\tint " + ivalue + " = 0";
+                                if (currentLanguage == Language.CSharp)
+                                    arr[0] += "\t\t\tint " + ivalue + " = 0";
+                                else if (currentLanguage == Language.Java)
+                                    arr[0] += "\tint " + ivalue;
                             }
-                            else
-                            {
-                                arr[0] += "," + ivalue + " = 0";
+                            else {
+                                if(currentLanguage == Language.CSharp)
+                                    arr[0] += "," + ivalue + " = 0";
+                                else if(currentLanguage == Language.Java)
+                                    arr[0] += "," + ivalue;
                             }
+
                             if (input > 0)
                             {
-                                InputFunctionCall += "ref " + ivalue + ",";
-                                FunctionCall += ivalue + ",";
-                                HamNhap += "ref int " + ivalue + ",";
-                                param += "int " + ivalue + ",";
-                                Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
-                                    + ivalue + "=Int32.Parse(Console.ReadLine());\n";
+                                if (currentLanguage == Language.CSharp)
+                                {
+                                    InputFunctionCall += "ref " + ivalue + ",";
+                                    FunctionCall += ivalue + ",";
+                                    HamNhap += "ref int " + ivalue + ",";
+                                    param += "int " + ivalue + ",";
+                                    Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
+                                        + ivalue + " = Int32.Parse(Console.ReadLine());\n";
+                                }
+                                else if (currentLanguage == Language.Java)
+                                {
+                                    Code += "\t\tSystem.out.print(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t"
+                                        + ivalue + " = ip.nextInt();\n";
+                                }
+
                             }
                         }
                         else if (itype.Contains("Q") || itype.Contains("R"))
                         {
                             if (arr[1] == "")
                             {
-                                arr[1] += "\t\t\tfloat " + ivalue + " = 0";
+                                if (currentLanguage == Language.CSharp)
+                                    arr[1] += "\t\t\tfloat " + ivalue + " = 0";
+                                else if (currentLanguage == Language.Java)
+                                    arr[1] += "\tfloat " + ivalue;
                             }
                             else
                             {
-                                arr[1] += "," + ivalue + " = 0";
+                                if (currentLanguage == Language.CSharp)
+                                    arr[1] += "," + ivalue + " = 0";
+                                else if (currentLanguage == Language.Java)
+                                    arr[1] += "," + ivalue;
                             }
+
                             if (input > 0)
                             {
-                                InputFunctionCall += "ref " + ivalue + ",";
-                                FunctionCall += ivalue + ",";
-                                HamNhap += "ref float " + ivalue + ",";
-                                param += "float " + ivalue + ",";
-                                Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
-                                    + ivalue + "=float.Parse(Console.ReadLine());\n";
+                                if (currentLanguage == Language.CSharp)
+                                {
+                                    InputFunctionCall += "ref " + ivalue + ",";
+                                    FunctionCall += ivalue + ",";
+                                    HamNhap += "ref float " + ivalue + ",";
+                                    param += "float " + ivalue + ",";
+                                    Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
+                                        + ivalue + " = float.Parse(Console.ReadLine());\n";
+                                }
+                                else if (currentLanguage == Language.Java)
+                                {
+                                    Code += "\t\tSystem.out.print(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t"
+                                        + ivalue + " = ip.nextFloat();\n";
+                                }
+
                             }
                         }
                         else if (itype.Contains("B"))
                         {
                             if (arr[2] == "")
                             {
-                                arr[2] += "\t\t\tbool " + ivalue + " = true";
+                                if (currentLanguage == Language.CSharp)
+                                    arr[2] += "\t\t\tbool " + ivalue + " = true";
+                                else if (currentLanguage == Language.Java)
+                                    arr[2] += "\tbool " + ivalue;
                             }
                             else
                             {
-                                arr[2] += "," + ivalue + " = true";
+                                if (currentLanguage == Language.CSharp)
+                                    arr[2] += "," + ivalue + " = true";
+                                else if (currentLanguage == Language.Java)
+                                    arr[2] += "," + ivalue;
                             }
+
                             if (input > 0)
                             {
-                                InputFunctionCall += "ref " + ivalue + ",";
-                                FunctionCall += ivalue + ",";
-                                HamNhap += "ref bool " + ivalue + ",";
-                                param += "bool " + ivalue + ",";
-                                Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
-                                    + ivalue + "=bool.Parse(Console.ReadLine());\n";
+                                if (currentLanguage == Language.CSharp)
+                                {
+                                    InputFunctionCall += "ref " + ivalue + ",";
+                                    FunctionCall += ivalue + ",";
+                                    HamNhap += "ref bool " + ivalue + ",";
+                                    param += "bool " + ivalue + ",";
+                                    Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
+                                        + ivalue + " = bool.Parse(Console.ReadLine());\n";
+                                }
+                                else if (currentLanguage == Language.Java)
+                                {
+                                    Code += "\t\tSystem.out.print(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t"
+                                        + ivalue + " = ip.nextBoolean();\n";
+                                }
+
                             }
                         }
                         if (itype.Contains("char"))
                         {
                             if (arr[3] == "")
                             {
-                                arr[3] += "\t\t\tchar " + ivalue + " = ''";
+                                if (currentLanguage == Language.CSharp)
+                                    arr[3] += "\t\t\tchar " + ivalue + " = ''";
+                                else if (currentLanguage == Language.Java)
+                                    arr[3] += "\tchar " + ivalue;
                             }
                             else
                             {
-                                arr[3] += "," + ivalue + " = ''";
+                                if (currentLanguage == Language.CSharp)
+                                    arr[3] += "," + ivalue + " = ''";
+                                else if (currentLanguage == Language.Java)
+                                    arr[3] += "," + ivalue;
                             }
+
                             if (input > 0)
                             {
-                                InputFunctionCall += "ref " + ivalue + ",";
-                                FunctionCall += ivalue + ",";
-                                HamNhap += "ref char " + ivalue + ",";
-                                param += "char " + ivalue + ",";
-                                Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
-                                    + ivalue + "=char.Parse(Console.ReadLine());\n";                                
+                                if (currentLanguage == Language.CSharp)
+                                {
+                                    InputFunctionCall += "ref " + ivalue + ",";
+                                    FunctionCall += ivalue + ",";
+                                    HamNhap += "ref char " + ivalue + ",";
+                                    param += "char " + ivalue + ",";
+                                    Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
+                                        + ivalue + " = char.Parse(Console.ReadLine());\n";
+                                }
+                                else if (currentLanguage == Language.Java)
+                                {
+                                    Code += "\t\tSystem.out.print(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t"
+                                        + ivalue + " = ip.nextLine();\n";
+                                }
+
                             }
                         }
                     } 
@@ -465,33 +530,57 @@ namespace Formular_Specification
                     {
                         if (itype.Contains("N") || itype.Contains("Z"))
                         {
-                            arr[5] += "\t\t\tint[] " + ivalue + " = new int [100];\n";
+                            if (currentLanguage == Language.CSharp)
+                                arr[5] += "\t\t";
+
+                            arr[5] += "\tint[] " + ivalue + " = new int [100];\n";
                         }
                         else if (itype.Contains("Q") || itype.Contains("R"))
                         {
-                            arr[5] += "\t\t\tfloat[] " + ivalue + " = new float [100];\n";
+                            if (currentLanguage == Language.CSharp)
+                                arr[5] += "\t\t";
+
+                            arr[5] += "\tfloat[] " + ivalue + " = new float [100];\n";
                         }
                         else if (itype.Contains("B"))
                         {
-                            arr[5] += "\t\t\tbool[] " + ivalue + " = new bool [100];\n";
+                            if (currentLanguage == Language.CSharp)
+                                arr[5] += "\t\t";
+
+                            arr[5] += "\tbool[] " + ivalue + " = new bool [100];\n";
                         }
                         else if (itype.Contains("char")) //char* = string
                         {
                             if (arr[4] == "")
                             {
-                                arr[4] += "\t\t\tstring " + ivalue + " = \"\"";
+                                if (currentLanguage == Language.CSharp)
+                                    arr[4] += "\t\t\tstring " + ivalue + " = \"\"";
+                                else if (currentLanguage == Language.Java)
+                                    arr[4] += "\tstring " + ivalue;
                             }
                             else
                             {
-                                arr[4] += "," + ivalue + " = \"\"";
+                                if (currentLanguage == Language.CSharp)
+                                    arr[4] += "," + ivalue + " = \"\"";
+                                else if (currentLanguage == Language.Java)
+                                    arr[4] += "," + ivalue;
                             }
+
                             if (input > 0)
                             {
-                                InputFunctionCall += "ref " + ivalue + ",";
-                                FunctionCall += ivalue + ",";
-                                HamNhap += "ref string " + ivalue + ",";
-                                param += "string " + ivalue + ",";
-                                Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n";
+                                if (currentLanguage == Language.CSharp)
+                                {
+                                    InputFunctionCall += "ref " + ivalue + ",";
+                                    FunctionCall += ivalue + ",";
+                                    HamNhap += "ref string " + ivalue + ",";
+                                    param += "string " + ivalue + ",";
+                                    Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n";
+                                }
+                                else if(currentLanguage == Language.Java)
+                                {
+                                    Code += "\t\tSystem.out.print(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t"
+                                        + ivalue + " = ip.nextLine();\n";
+                                }
                             }
                         }
                     }  
@@ -510,18 +599,20 @@ namespace Formular_Specification
 
                     if (input == 0) //hết input của bài
                     {
-                        HamNhap = HamNhap.Remove(HamNhap.Length - 1);
-                        HamNhap += ")";   //hàm nhập
+                        if (currentLanguage == Language.CSharp)
+                        {
+                            HamNhap = HamNhap.Remove(HamNhap.Length - 1);
+                            HamNhap += ")";   //hàm nhập
 
-                        InputFunctionCall = InputFunctionCall.Remove(InputFunctionCall.Length - 1);
-                        InputFunctionCall += ")";  //gọi hàm từ main
+                            InputFunctionCall = InputFunctionCall.Remove(InputFunctionCall.Length - 1);
+                            InputFunctionCall += ")";  //gọi hàm từ main
 
-                        FunctionCall = FunctionCall.Remove(FunctionCall.Length - 1);
-                        FunctionCall += ")";  //tham số truyền vào khi gọi từ main
+                            FunctionCall = FunctionCall.Remove(FunctionCall.Length - 1);
+                            FunctionCall += ")";  //tham số truyền vào khi gọi từ main
 
-                        param = param.Remove(param.Length - 1);  //tham số truyền vào khi khởi tạo hàm
+                            param = param.Remove(param.Length - 1);  //tham số truyền vào khi khởi tạo hàm
+                        }
                     }
-
                 }
             }
             if (type == 2)
@@ -547,68 +638,124 @@ namespace Formular_Specification
                     string fnvalue = Input[Input.Length - 1].Substring(0, fntwodot);  //lấy biến trước :
                     string fntype = Input[Input.Length - 1].Substring(fntwodot);  //lấy kiểu dữ liệu sau :
 
-                    if (!itype.Contains("*")) //là biến số lượng
+                    if (!itype.Contains("*")) //là biến số lượng   (n:N,a:R*)
                     {
                         if (jtype.Contains("*"))  //kế tiếp là mảng
                         {
                             if (arr[0] == "")
                             {
-                                arr[0] += "\t\t\tint " + ivalue + " = 0";
+                                if (currentLanguage == Language.CSharp)
+                                    arr[0] += "\t\t\tint " + ivalue + " = 0";
+                                else if (currentLanguage == Language.Java)
+                                    arr[0] += "\tint " + ivalue;
                             }
                             else
                             {
-                                arr[0] += "," + ivalue + " = 0";
+                                if (currentLanguage == Language.CSharp)
+                                    arr[0] += "," + ivalue + " = 0";
+                                else if (currentLanguage == Language.Java)
+                                    arr[0] += "," + ivalue;
                             }
 
-                            Code += "\t\t\tConsole.Write(\"Nhap so phan tu cua mang " + jvalue + ": \");\n"
-                                + "\t\t\t" + ivalue + " = Int32.Parse(Console.ReadLine());\n";
+                            if(currentLanguage == Language.CSharp)
+                                Code += "\t\t\tConsole.Write(\"Nhap so phan tu cua mang " + jvalue + ": \");\n"
+                                    + "\t\t\t" + ivalue + " = Int32.Parse(Console.ReadLine());\n";
+                            else if(currentLanguage == Language.Java)
+                                Code += "\t\tSystem.out.print(\"Nhap so phan tu cua mang " + jvalue + ": \");\n"
+                                    + "\t\t" + ivalue + " = ip.nextInt();\n";
 
                             if (jtype.Contains("N") || jtype.Contains("Z"))
                             {
-                                arr[5] += "\t\t\tint[] "+jvalue+" = new int [100];\n";
-                                Code += "\t\t\t" + jvalue + " = new int[" + ivalue + " + 1];\n"
-                                + "\t\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
-                                "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i" + ");\n" +
-                                    "\t\t\t\t" + jvalue + "[i]" + "=Int32.Parse(Console.ReadLine());\n\t\t\t}\n";
+
+                                if (currentLanguage == Language.CSharp)
+                                {
+                                    arr[5] += "\t\t\tint[] " + jvalue + " = new int [100];\n";
+                                    Code += "\t\t\t" + jvalue + " = new int[" + ivalue + " + 1];\n"
+                                        + "\t\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t\t{ \n"
+                                        + "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i" + ");\n" +
+                                        "\t\t\t\t" + jvalue + "[i]" + "= Int32.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                }
+                                else if (currentLanguage == Language.Java)
+                                {
+                                    arr[5] += "\tint[] " + jvalue + " = new int [100];\n";
+                                    Code += "\t\t" + jvalue + " = new int[" + ivalue + " + 1];\n"
+                                        + "\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t{ \n" 
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu\" + i + "+"\":\"" + ");\n" 
+                                        + "\t\t\t" + jvalue + "[i]" + "= ip.nextInt();\n\t\t}\n";
+                                }
+
                                 if (input > 0)
                                 {
-                                    FunctionCall += ivalue + ",";
-                                    InputFunctionCall += "ref " + ivalue + ",ref " + jvalue + ",";
-                                    HamNhap += "ref int " + ivalue + "," + "ref int[] " + jvalue + ",";
-                                    param += "int " + ivalue + "," + " int[] " + jvalue + ",";
+                                    if (currentLanguage == Language.CSharp)
+                                    {
+                                        FunctionCall += ivalue + "," + jvalue + ",";
+                                        InputFunctionCall += "ref " + ivalue + ",ref " + jvalue + ",";
+                                        HamNhap += "ref int " + ivalue + "," + "ref int[] " + jvalue + ",";
+                                        param += "int " + ivalue + "," + " int[] " + jvalue + ",";
+                                    }
                                 }
                             }
                             else if (jtype.Contains("Q") || jtype.Contains("R"))
                             {
-                                arr[5] += "\t\t\tfloat[] " + jvalue + " = new float [100];\n";
-                                Code += "\t\t\t" + jvalue + " = new float[" + ivalue + " + 1];\n"
-                                    + "\t\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
-                                    "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i" + ");\n" +
-                                    "\t\t\t\t" + jvalue + "[i]" + "=float.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                if (currentLanguage == Language.CSharp)
+                                {
+                                    arr[5] += "\t\t\tfloat[] " + jvalue + " = new float [100];\n";
+                                    Code += "\t\t\t" + jvalue + " = new float[" + ivalue + " + 1];\n"
+                                        + "\t\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t\t{ \n"
+                                        + "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i" + ");\n" +
+                                        "\t\t\t\t" + jvalue + "[i]" + "= float.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                }
+                                else if (currentLanguage == Language.Java)
+                                {
+                                    arr[5] += "\tfloat[] " + jvalue + " = new float [100];\n";
+                                    Code += "\t\t" + jvalue + " = new float[" + ivalue + " + 1];\n"
+                                        + "\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t{ \n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu\" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\t" + jvalue + "[i]" + "= ip.nextFloat();\n\t\t}\n";
+                                }
+
                                 if (input > 0)
                                 {
-                                    FunctionCall += ivalue + "," + jvalue + ",";
-                                    InputFunctionCall += "ref " + ivalue + ",ref " + jvalue + ",";
-                                    HamNhap += "ref int " + ivalue + "," + "ref float[] " + jvalue + ",";
-                                    param += "int " + ivalue + "," + " float[] " + jvalue + ",";
+                                    if (currentLanguage == Language.CSharp)
+                                    {
+                                        FunctionCall += ivalue + "," + jvalue + ",";
+                                        InputFunctionCall += "ref " + ivalue + ",ref " + jvalue + ",";
+                                        HamNhap += "ref int " + ivalue + "," + "ref float[] " + jvalue + ",";
+                                        param += "int " + ivalue + "," + " float[] " + jvalue + ",";
+                                    }
                                 }
                             }
                             else if (jtype.Contains("B"))
                             {
-                                arr[5] += "\t\t\tbool[] " + jvalue + " = new bool [100];\n";
-                                Code += "\t\t\t" + jvalue + " = new bool[" + ivalue + " + 1];\n"
-                                    + "\t\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
-                                    "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i"  + " \");;\n" +
-                                    "\t\t\t\t" + jvalue + "[i]" + "=bool.Parse(Console.ReadLine());\n\t\t\t}\n";
+
+                                if (currentLanguage == Language.CSharp)
+                                {
+                                    arr[5] += "\t\t\tbool[] " + jvalue + " = new bool [100];\n";
+                                    Code += "\t\t\t" + jvalue + " = new bool[" + ivalue + " + 1];\n"
+                                        + "\t\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t\t{ \n"
+                                        + "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i" + ");\n" +
+                                        "\t\t\t\t" + jvalue + "[i]" + "= bool.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                }
+                                else if (currentLanguage == Language.Java)
+                                {
+                                    arr[5] += "\tfloat[] " + jvalue + " = new bool [100];\n";
+                                    Code += "\t\t" + jvalue + " = new bool[" + ivalue + " + 1];\n"
+                                        + "\t\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t{ \n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu\" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\t" + jvalue + "[i]" + "= ip.nextBoolean();\n\t\t}\n";
+                                }
+
                                 if (input > 0)
                                 {
-                                    FunctionCall += ivalue + ",";
-                                    InputFunctionCall += "ref " + ivalue + ",ref " + jvalue + ",";
-                                    HamNhap += "ref int " + ivalue + "," + "ref bool[] " + jvalue + ",";
-                                    param += "int " + ivalue + "," + "bool[] " + jvalue + ",";
+                                    if (currentLanguage == Language.CSharp)
+                                    {
+                                        FunctionCall += ivalue + "," + jvalue + ",";
+                                        InputFunctionCall += "ref " + ivalue + ",ref " + jvalue + ",";
+                                        HamNhap += "ref int " + ivalue + "," + "ref int[] " + jvalue + ",";
+                                        param += "int " + ivalue + "," + " int[] " + jvalue + ",";
+                                    }
                                 }
                             }
-
 
                             i++;  //vì đã kiểm tra phần tử i + 1 nên skip i + 1
 
@@ -620,44 +767,68 @@ namespace Formular_Specification
                                     {
                                         if (arr[0] == "")
                                         {
-                                            arr[0] += "\t\t\tint " + fnvalue + " = 0";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[0] += "\t\t\tint " + fnvalue + " = 0";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[0] += "\tint " + fnvalue;
                                         }
                                         else
                                         {
-                                            arr[0] += "," + fnvalue + " = 0";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[0] += "," + fnvalue + " = 0";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[0] += "," + fnvalue;
                                         }
                                     }
                                     else if (fntype.Contains("Q") || fntype.Contains("R"))
                                     {
                                         if (arr[1] == "")
                                         {
-                                            arr[1] += "\t\t\tfloat " + fnvalue + " = 0";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[1] += "\t\t\tfloat " + fnvalue + " = 0";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[1] += "\tfloat " + fnvalue;
                                         }
                                         else
                                         {
-                                            arr[1] += "," + fnvalue + " = 0";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[1] += "," + fnvalue + " = 0";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[1] += "," + fnvalue;
                                         }
                                     }
                                     else if (fntype.Contains("B"))
                                     {
                                         if (arr[2] == "")
                                         {
-                                            arr[2] += "\t\t\tbool " + fnvalue + " = true";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[2] += "\t\t\tbool " + fnvalue + " = true";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[2] += "\tbool " + fnvalue;
                                         }
                                         else
                                         {
-                                            arr[2] += "," + fnvalue + " = true";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[2] += "," + fnvalue + " = true";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[2] += "," + fnvalue;
                                         }
                                     }
                                     else if (fntype.Contains("char"))
                                     {
                                         if (arr[3] == "")
                                         {
-                                            arr[3] += "\t\t\tchar " + fnvalue + " = ''";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[3] += "\t\t\tchar " + fnvalue + " = ''";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[3] += "\tchar " + fnvalue;
                                         }
                                         else
                                         {
-                                            arr[3] += "," + fnvalue + " = ''";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[3] += "," + fnvalue + " = ''";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[3] += "," + fnvalue;
                                         }
                                     }
                                 }
@@ -676,11 +847,17 @@ namespace Formular_Specification
                                     {
                                         if (arr[4] == "")
                                         {
-                                            arr[4] += "\t\t\tstring " + fnvalue + " = \"\"";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[4] += "\t\t\tstring " + fnvalue + " = \"\"";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[4] += "\tstring " + fnvalue;
                                         }
                                         else
                                         {
-                                            arr[4] += "," + fnvalue + " = \"\"";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[4] += "," + fnvalue + " = \"\"";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[4] += "," + fnvalue;
                                         }
                                     }
                                 }
@@ -696,16 +873,20 @@ namespace Formular_Specification
 
                             if (input == 0) 
                             {
-                                HamNhap = HamNhap.Remove(HamNhap.Length - 1);
-                                HamNhap += ")";
+                                if (currentLanguage == Language.CSharp)
+                                {
+                                    HamNhap = HamNhap.Remove(HamNhap.Length - 1);
+                                    HamNhap += ")";
 
-                                InputFunctionCall = InputFunctionCall.Remove(InputFunctionCall.Length - 1);
-                                InputFunctionCall += ")";
+                                    InputFunctionCall = InputFunctionCall.Remove(InputFunctionCall.Length - 1);
+                                    InputFunctionCall += ")";
 
-                                FunctionCall = FunctionCall.Remove(FunctionCall.Length - 1);
-                                FunctionCall += ")";
+                                    FunctionCall = FunctionCall.Remove(FunctionCall.Length - 1);
+                                    FunctionCall += ")";
 
-                                param = param.Remove(param.Length - 1);
+                                    param = param.Remove(param.Length - 1);
+                                }
+
                             }
                         }
                         if (!jtype.Contains("*")) //kế tiếp vẫn là biến số lượng
@@ -721,64 +902,122 @@ namespace Formular_Specification
                             } else MessageBox.Show("Luồng nhập sai quy tắc"); 
                         }
                     }
-                    if (itype.Contains("*"))  //là mảng
+                    if (itype.Contains("*"))  //là mảng (a:R*,n:N)
                     {
                         if (!jtype.Contains("*"))  //kế tiếp là biến số lượng
                         {
                             if (arr[0] == "")
                             {
-                                arr[0] += "\t\t\tint " + jvalue + " = 0";
+                                if (currentLanguage == Language.CSharp)
+                                    arr[0] += "\t\t\tint " + jvalue + " = 0";
+                                else if (currentLanguage == Language.Java)
+                                    arr[0] += "\tint " + jvalue;
                             }
                             else
                             {
-                                arr[0] += "," + jvalue + " = 0";
+                                if (currentLanguage == Language.CSharp)
+                                    arr[0] += "," + jvalue + " = 0";
+                                else if (currentLanguage == Language.Java)
+                                    arr[0] += "," + jvalue;
                             }
 
-                            Code += "\t\t\tConsole.Write(\"Nhap so phan tu cua mang " + ivalue + ": \");\n"
-                                + "\t\t\t" + jvalue + " = Int32.Parse(Console.ReadLine());\n";
+                            if (currentLanguage == Language.CSharp)
+                                Code += "\t\t\tConsole.Write(\"Nhap so phan tu cua mang " + ivalue + ": \");\n"
+                                    + "\t\t\t" + jvalue + " = Int32.Parse(Console.ReadLine());\n";
+                            else if (currentLanguage == Language.Java)
+                                Code += "\t\tSystem.out.print(\"Nhap so phan tu cua mang " + ivalue + ": \");\n"
+                                    + "\t\t" + jvalue + " = ip.nextInt();\n";
+
                             if (itype.Contains("N") || itype.Contains("Z"))
                             {
-                                arr[5] += "\t\t\tint[] " + ivalue + " = new int [100];\n";
-                                Code += "\t\t\t" + ivalue + " = new int[" + jvalue + " + 1];\n"
-                                + "\t\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t\t{ \n" +
-                                "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i" +  ");\n" +
-                                    "\t\t\t\t" + ivalue + "[i]" + "= Int32.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                if (currentLanguage == Language.CSharp)
+                                {
+                                    arr[5] += "\t\t\tint[] " + ivalue + " = new int [100];\n";
+                                    Code += "\t\t\t" + ivalue + " = new int[" + jvalue + " + 1];\n"
+                                        + "\t\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t\t{ \n"
+                                        + "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i" + ");\n" +
+                                        "\t\t\t\t" + ivalue + "[i]" + "= Int32.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                }
+                                else if (currentLanguage == Language.Java)
+                                {
+                                    arr[5] += "\tint[] " + ivalue + " = new int [100];\n";
+                                    Code += "\t\t" + ivalue + " = new int[" + jvalue + " + 1];\n"
+                                        + "\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t{ \n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu\" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\t" + ivalue + "[i]" + "= ip.nextInt();\n\t\t}\n";
+                                }
+
                                 if (input > 0)
                                 {
-                                    FunctionCall += jvalue + "," + ivalue + ",";
-                                    InputFunctionCall += "ref " + jvalue + ",ref " + ivalue + ",";
-                                    HamNhap += "ref int " + jvalue + "," + "ref int[] " + ivalue + ",";
-                                    param += "int " + jvalue + "," + " int[] " + ivalue + ",";
+                                    if (currentLanguage == Language.CSharp)
+                                    {
+                                        FunctionCall += jvalue + "," + ivalue + ",";
+                                        InputFunctionCall += "ref " + jvalue + ",ref " + ivalue + ",";
+                                        HamNhap += "ref int " + jvalue + "," + "ref int[] " + ivalue + ",";
+                                        param += "int " + jvalue + "," + "int[] " + ivalue + ",";
+                                    }
                                 }
                             }
                             else if (itype.Contains("Q") || itype.Contains("R"))
                             {
-                                arr[5] += "\t\t\tfloat[] " + ivalue + " = new float [100];\n";
-                                Code += "\t\t\t" + ivalue + " = new float[" + jvalue + " + 1];\n"
-                                    + "\t\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t\t{ \n" +
-                                    "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i"  + ");\n" +
-                                    "\t\t\t\t" + ivalue + "[i]" + "= float.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                if (currentLanguage == Language.CSharp)
+                                {
+                                    arr[5] += "\t\t\tfloat[] " + ivalue + " = new float [100];\n";
+                                    Code += "\t\t\t" + ivalue + " = new float[" + jvalue + " + 1];\n"
+                                        + "\t\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t\t{ \n"
+                                        + "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i" + ");\n" +
+                                        "\t\t\t\t" + ivalue + "[i]" + "= float.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                }
+                                else if (currentLanguage == Language.Java)
+                                {
+                                    arr[5] += "\tfloat[] " + ivalue + " = new float [100];\n";
+                                    Code += "\t\t" + ivalue + " = new float[" + jvalue + " + 1];\n"
+                                        + "\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t{ \n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu\" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\t" + ivalue + "[i]" + "= ip.nextFloat();\n\t\t}\n";
+                                }
+
+
                                 if (input > 0)
                                 {
-                                    FunctionCall += jvalue + "," + ivalue + ",";
-                                    InputFunctionCall += "ref " + jvalue + ",ref " + ivalue + ",";
-                                    HamNhap += "ref int " + jvalue + "," + "ref float[] " + ivalue + ",";
-                                    param += "int " + jvalue + "," + "float[] " + ivalue + ",";
+                                    if (currentLanguage == Language.CSharp)
+                                    {
+                                        FunctionCall += jvalue + "," + ivalue + ",";
+                                        InputFunctionCall += "ref " + jvalue + ",ref " + ivalue + ",";
+                                        HamNhap += "ref int " + jvalue + "," + "ref float[] " + ivalue + ",";
+                                        param += "int " + jvalue + "," + "float[] " + ivalue + ",";
+                                    }
                                 }
                             }
                             else if (itype.Contains("B"))
                             {
-                                arr[5] += "\t\t\tbool[] " + ivalue + " = new bool [100];\n";
-                                Code += "\t\t\t" + ivalue + " = new bool[" + jvalue + " + 1];\n"
-                                    + "\t\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t\t{ \n" +
-                                    "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i" + ");\n" +
-                                    "\t\t\t\t" + ivalue + "[i]" + "= bool.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                if (currentLanguage == Language.CSharp)
+                                {
+                                    arr[5] += "\t\t\tbool[] " + ivalue + " = new bool [100];\n";
+                                    Code += "\t\t\t" + ivalue + " = new bool[" + jvalue + " + 1];\n"
+                                        + "\t\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t\t{ \n"
+                                        + "\t\t\t\tConsole.Write(\"Nhap vao phan thu {0} : \",i" + ");\n" +
+                                        "\t\t\t\t" + ivalue + "[i]" + "= bool.Parse(Console.ReadLine());\n\t\t\t}\n";
+                                }
+                                else if (currentLanguage == Language.Java)
+                                {
+                                    arr[5] += "\tbool[] " + ivalue + " = new bool [100];\n";
+                                    Code += "\t\t" + ivalue + " = new bool[" + jvalue + " + 1];\n"
+                                        + "\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t{ \n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu\" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\t" + ivalue + "[i]" + "= ip.nextBoolean();\n\t\t}\n";
+                                }
+
+
                                 if (input > 0)
                                 {
-                                    FunctionCall += jvalue + "," + ivalue + ",";
-                                    InputFunctionCall += "ref " + jvalue + ",ref " + ivalue + ",";
-                                    HamNhap += "ref int " + jvalue + "," + "ref bool[] " + ivalue + ",";
-                                    param += "int " + jvalue + "," + "bool[] " + ivalue + ",";
+                                    if (currentLanguage == Language.CSharp)
+                                    {
+                                        FunctionCall += jvalue + "," + ivalue + ",";
+                                        InputFunctionCall += "ref " + jvalue + ",ref " + ivalue + ",";
+                                        HamNhap += "ref int " + jvalue + "," + "ref bool[] " + ivalue + ",";
+                                        param += "int " + jvalue + "," + "bool[] " + ivalue + ",";
+                                    }
                                 }
                             }
 
@@ -792,33 +1031,68 @@ namespace Formular_Specification
                                     {
                                         if (arr[0] == "")
                                         {
-                                            arr[0] += "\t\tint " + fnvalue + " = 0";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[0] += "\t\t\tint " + fnvalue + " = 0";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[0] += "\tint " + fnvalue;
                                         }
                                         else
                                         {
-                                            arr[0] += "," + fnvalue + " = 0";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[0] += "," + fnvalue + " = 0";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[0] += "," + fnvalue;
                                         }
                                     }
                                     else if (fntype.Contains("Q") || fntype.Contains("R"))
                                     {
                                         if (arr[1] == "")
                                         {
-                                            arr[1] += "\t\t\tfloat " + fnvalue + " = 0";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[1] += "\t\t\tfloat " + fnvalue + " = 0";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[1] += "\tfloat " + fnvalue;
                                         }
                                         else
                                         {
-                                            arr[1] += "," + fnvalue + " = 0";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[1] += "," + fnvalue + " = 0";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[1] += "," + fnvalue;
                                         }
                                     }
                                     else if (fntype.Contains("B"))
                                     {
                                         if (arr[2] == "")
                                         {
-                                            arr[2] += "\t\t\tbool " + fnvalue + " = true";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[2] += "\t\t\tbool " + fnvalue + " = true";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[2] += "\tbool " + fnvalue;
                                         }
                                         else
                                         {
-                                            arr[2] += "," + fnvalue + " = true";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[2] += "," + fnvalue + " = true";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[2] += "," + fnvalue;
+                                        }
+                                    }
+                                    else if (fntype.Contains("char"))
+                                    {
+                                        if (arr[3] == "")
+                                        {
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[3] += "\t\t\tchar " + fnvalue + " = ''";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[3] += "\tchar " + fnvalue;
+                                        }
+                                        else
+                                        {
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[3] += "," + fnvalue + " = ''";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[3] += "," + fnvalue;
                                         }
                                     }
                                 }
@@ -837,11 +1111,17 @@ namespace Formular_Specification
                                     {
                                         if (arr[4] == "")
                                         {
-                                            arr[4] += "\t\tstring " + fnvalue + " = \"\"";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[4] += "\t\t\tstring " + fnvalue + " = \"\"";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[4] += "\tstring " + fnvalue;
                                         }
                                         else
                                         {
-                                            arr[4] += "," + fnvalue + " = \"\"";
+                                            if (currentLanguage == Language.CSharp)
+                                                arr[4] += "," + fnvalue + " = \"\"";
+                                            else if (currentLanguage == Language.Java)
+                                                arr[4] += "," + fnvalue;
                                         }
                                     }
                                 }
@@ -857,16 +1137,20 @@ namespace Formular_Specification
 
                             if (input == 0)  //hết input
                             {
-                                HamNhap = HamNhap.Remove(HamNhap.Length - 1);
-                                HamNhap += ")";
+                                if (currentLanguage == Language.CSharp)
+                                {
+                                    HamNhap = HamNhap.Remove(HamNhap.Length - 1);
+                                    HamNhap += ")";
 
-                                InputFunctionCall = InputFunctionCall.Remove(InputFunctionCall.Length - 1);
-                                InputFunctionCall += ")";
+                                    InputFunctionCall = InputFunctionCall.Remove(InputFunctionCall.Length - 1);
+                                    InputFunctionCall += ")";
 
-                                FunctionCall = FunctionCall.Remove(FunctionCall.Length - 1);
-                                FunctionCall += ")";
+                                    FunctionCall = FunctionCall.Remove(FunctionCall.Length - 1);
+                                    FunctionCall += ")";
 
-                                param = param.Remove(param.Length - 1);
+                                    param = param.Remove(param.Length - 1);
+                                }
+
                             }
                         }
                         if (jtype.Contains("*"))  //kế tiếp vẫn là mảng
@@ -886,40 +1170,74 @@ namespace Formular_Specification
                 }
             }
 
-            MainInputCode = arr[0] + arr[1] + arr[2] + arr[3] + arr[4] +arr[5]; 
+            MainInputCode = arr[0] + arr[1] + arr[2] + arr[3] + arr[4] + arr[5];
+
+            if (currentLanguage == Language.Java)
+            {
+                return MainInputCode + "\n" + HamNhap + "\n\t{\n"+"\t\tScanner ip = new Scanner(System.in);\n" + Code + "\n\t\tip.close();\n"+"\t}\n\n";
+            }
             return HamNhap + "\n\t\t{\n" + Code + "\t\t}\n\n";
         }
 
         private string GenerateOutput(string OutputVariable, string FunctionName)
         {
-            string code = "\t\tpublic void Xuat_"+ FunctionName;
+            string code = "";
+
+            if (currentLanguage == Language.Java)
+            code = "\tpublic void Xuat_" + FunctionName + "()";
+            else if (currentLanguage == Language.CSharp)
+            code = "\t\tpublic void Xuat_"+ FunctionName;
+
             int twodot = OutputVariable.IndexOf(":");
             string value = OutputVariable.Substring(0, twodot);
             string type = OutputVariable.Substring(twodot);
 
             if (!type.Contains("*"))
             {
+                if (currentLanguage == Language.Java && !type.Contains("B"))
+                {
+                    code += "\n\t{\n" + "\t\tSystem.out.print(\"Ket qua la: \" + " + value + ");\n\t}\n";
+                }
+                else if (currentLanguage == Language.Java && type.Contains("B"))
+                {
+                    code += "\n\t{\n" + "\t\tif (" + value + ")\n\t\t{\n";
+                    code += "\t\t\tSystem.out.print(\"Dung\");\n\t\t}";
+                    code += " else System.out.print(\"Sai\");" + "\n\t}\n";
+                }
+
                 if (type.Contains("N") || type.Contains("Z"))
                 {
-                    code += "(int " + value + ")";
-                    code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}\"," + value + ");\n\t\t}\n";
+                    if (currentLanguage == Language.CSharp)
+                    {
+                        code += "(int " + value + ")";
+                        code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}\"," + value + ");\n\t\t}\n";
+                    }
                 }
                 if (type.Contains("R") || type.Contains("Q"))
                 {
-                    code += "(float " + value + ")";
-                    code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}\"," + value + ");\n\t\t}\n";
+                    if (currentLanguage == Language.CSharp)
+                    {
+                        code += "(float " + value + ")";
+                        code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}\"," + value + ");\n\t\t}\n";
+                    }
                 }
                 if (type.Contains("char"))
                 {
-                    code += "(char " + value + ")";
-                    code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}\"," + value + ");\n\t\t}\n";
+                    if(currentLanguage == Language.CSharp)
+                    {
+                        code += "(char " + value + ")";
+                        code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}\"," + value + ");\n\t\t}\n";
+                    }
                 }
                 if (type.Contains("B"))
                 {
-                    code += "(bool " + value + ")";
-                    code += "\n\t\t{\n" + "\t\t\tif (" + value + ")\n\t\t\t{\n";
-                    code += "\t\t\t\tConsole.Write(\"Dung\");\n\t\t\t}";
-                    code += " else Console.Write(\"Sai\");" + "\n\t\t}\n";
+                    if (currentLanguage == Language.CSharp)
+                    {
+                        code += "(bool " + value + ")";
+                        code += "\n\t\t{\n" + "\t\t\tif (" + value + ")\n\t\t\t{\n";
+                        code += "\t\t\t\tConsole.Write(\"Dung\");\n\t\t\t}";
+                        code += " else Console.Write(\"Sai\");" + "\n\t\t}\n";
+                    }
                 }
             }
             else if(type.Contains("*"))
@@ -939,9 +1257,20 @@ namespace Formular_Specification
                     code += "\t\t}\n";
                 }
                 if (type.Contains("char"))
-                { 
-                    code += "(string " + value + ")";
-                    code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}\"," + value + ");\n\t\t}\n";
+                {
+                    if (currentLanguage == Language.Java)
+                    {
+                        code += "(string " + value + ")";
+                        code += "\n\t{\n" + "\t\tSystem.out.print(\"Ket qua la: \" + " + value + ");\n\t}\n"; ;
+                    }
+                    else if (currentLanguage == Language.CSharp)
+                    {
+                        if (currentLanguage == Language.CSharp)
+                        {
+                            code += "(string " + value + ")";
+                            code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}\"," + value + ");\n\t\t}\n";
+                        }
+                    }
                 }
             }
 
@@ -950,13 +1279,39 @@ namespace Formular_Specification
 
         private string GeneratePre(string content, string FunctionName, string param)
         {
-            string code = "\n\t\tpublic int KiemTra_"+FunctionName+"("+param+")\n"+"\t\t{\n";
-            if (content != "")
+            string code = "";
+            content = insertEqual(content);
+
+            if (!string.IsNullOrEmpty(content))
             {
-                content = RemoveAllBracket(content);
-                code += "\t\t\tif (" + content + ")\n\t\t\t{\n" + "\t\t\t\treturn 1;\n" + "\t\t\t} else return 0;\n"+"\t\t}\n";
+                if (content.Substring(0, 1).Contains("(") && content.Substring(content.Length - 1, 1).Contains(")"))
+                {
+                    content = content.Remove(0, 1);
+                    content = content.Remove(content.Length - 1, 1);
+                }
             }
-            else code += "\t\t\treturn 1;\n"+"\t\t}\n";
+
+            if (currentLanguage == Language.CSharp)
+            {
+                code = "\n\t\tpublic int KiemTra_" + FunctionName + "(" + param + ")\n" + "\t\t{\n";
+                if (content != "")
+                {
+                    code += "\t\t\tif (" + content + ")\n\t\t\t{\n" + "\t\t\t\treturn 1;\n" + "\t\t\t} else return 0;\n" + "\t\t}\n";
+                }
+                else code += "\t\t\treturn 1;\n" + "\t\t}\n";
+            }
+            else if (currentLanguage == Language.Java)
+            {
+                code = "\n\tpublic int KiemTra_" + FunctionName + "(" + param + ")\n" + "\t{\n";
+                if (content != "")
+                {
+                    content = content.Remove(0, 1);
+                    content = content.Remove(content.Length - 1, 1);
+                    code += "\t\tif (" + content + ")\n\t\t{\n" + "\t\t\treturn 1;\n" + "\t\t} else return 0;\n" + "\t}\n";
+                }
+                else code += "\t\treturn 1;\n" + "\t}\n";
+            }
+
             return code;
         }
 
@@ -970,23 +1325,55 @@ namespace Formular_Specification
             {
                 if (type.Contains("N") || type.Contains("Z"))
                 {
-                    code = "\n\t\tpublic int Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
-                    code += FunctionExcute(content) + "\n\t\t}\n";
+                    if (currentLanguage == Language.CSharp)
+                    {
+                        code = "\n\t\tpublic int Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                        code += FunctionExcute(content) + "\n\t\t}\n";
+                    }
+                    else if(currentLanguage == Language.Java)
+                    {
+                        code = "\n\tpublic int Func_" + FunctionName + "(" + param + ")" + "\n\t{\n";
+                        code += FunctionExcute(content) + "\n\t}\n";
+                    }
                 }
                 else if (type.Contains("R") || type.Contains("Q"))
                 {
-                    code = "\n\t\tpublic float Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
-                    code += FunctionExcute(content) + "\n\t\t}\n";
+                    if (currentLanguage == Language.CSharp)
+                    {
+                        code = "\n\t\tpublic float Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                        code += FunctionExcute(content) + "\n\t\t}\n";
+                    }
+                    else if (currentLanguage == Language.Java)
+                    {
+                        code = "\n\tpublic float Func_" + FunctionName + "(" + param + ")" + "\n\t{\n";
+                        code += FunctionExcute(content) + "\n\t}\n";
+                    }
                 }
                 else if (type.Contains("B"))
                 {
-                    code = "\n\t\tpublic bool Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
-                    code += FunctionExcute(content) + "\n\t\t}\n";
+                    if (currentLanguage == Language.CSharp)
+                    {
+                        code = "\n\t\tpublic bool Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                        code += FunctionExcute(content) + "\n\t\t}\n";
+                    }
+                    else if (currentLanguage == Language.Java)
+                    {
+                        code = "\n\tpublic bool Func_" + FunctionName + "(" + param + ")" + "\n\t{\n";
+                        code += FunctionExcute(content) + "\n\t}\n";
+                    }
                 }
                 else if (type.Contains("char"))
                 {
-                    code = "\n\t\tpublic char Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
-                    code += FunctionExcute(content) + "\n\t\t}\n";
+                    if (currentLanguage == Language.CSharp)
+                    {
+                        code = "\n\t\tpublic char Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                        code += FunctionExcute(content) + "\n\t\t}\n";
+                    }
+                    else if (currentLanguage == Language.Java)
+                    {
+                        code = "\n\tpublic char Func_" + FunctionName + "(" + param + ")" + "\n\t{\n";
+                        code += FunctionExcute(content) + "\n\t}\n";
+                    }
                 }
             }
 
@@ -994,23 +1381,55 @@ namespace Formular_Specification
             {
                 if (type.Contains("N") || type.Contains("Z"))
                 {
-                    code = "\n\t\tpublic int Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
-                    code += FunctionExcute(content) + "\n\t\t}\n";
+                    if (currentLanguage == Language.CSharp)
+                    {
+                        code = "\n\t\tpublic int Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                        code += FunctionExcute(content) + "\n\t\t}\n";
+                    }
+                    else if (currentLanguage == Language.Java)
+                    {
+                        code = "\n\tpublic int Func_" + FunctionName + "(" + param + ")" + "\n\t{\n";
+                        code += FunctionExcute(content) + "\n\t}\n";
+                    }
                 }
                 else if (type.Contains("R") || type.Contains("Q"))
                 {
-                    code = "\n\t\tpublic float Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
-                    code += FunctionExcute(content) + "\n\t\t}\n";
+                    if (currentLanguage == Language.CSharp)
+                    {
+                        code = "\n\t\tpublic float Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                        code += FunctionExcute(content) + "\n\t\t}\n";
+                    }
+                    else if (currentLanguage == Language.Java)
+                    {
+                        code = "\n\tpublic float Func_" + FunctionName + "(" + param + ")" + "\n\t{\n";
+                        code += FunctionExcute(content) + "\n\t}\n";
+                    }
                 }
                 else if (type.Contains("B"))
                 {
-                    code = "\n\t\tpublic bool Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
-                    code += FunctionExcute(content) + "\n\t\t}\n";
+                    if (currentLanguage == Language.CSharp)
+                    {
+                        code = "\n\t\tpublic bool Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                        code += FunctionExcute(content) + "\n\t\t}\n";
+                    }
+                    else if (currentLanguage == Language.Java)
+                    {
+                        code = "\n\tpublic bool Func_" + FunctionName + "(" + param + ")" + "\n\t{\n";
+                        code += FunctionExcute(content) + "\n\t}\n";
+                    }
                 }
                 else if (type.Contains("char"))
                 {
-                    code = "\n\t\tpublic string Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
-                    code += FunctionExcute(content) + "\n\t\t}\n";
+                    if (currentLanguage == Language.CSharp)
+                    {
+                        code = "\n\t\tpublic string Func_" + FunctionName + "(" + param + ")" + "\n\t\t{\n";
+                        code += FunctionExcute(content) + "\n\t\t}\n";
+                    }
+                    else if (currentLanguage == Language.Java)
+                    {
+                        code = "\n\tpublic string Func_" + FunctionName + "(" + param + ")" + "\n\t{\n";
+                        code += FunctionExcute(content) + "\n\t}\n";
+                    }
                 }
             }
 
@@ -1021,17 +1440,35 @@ namespace Formular_Specification
         {
             int TwoDot = OutputVariable.IndexOf(":");
             string Value = OutputVariable.Substring(0,TwoDot);
+            string code = "";
 
-            string code = "\n\t\tpublic static void Main (string[] args)"+ "\n\t\t{\n";
-            code += MainInputCode + "\t\t\t" + FunctionName + " p = new " + FunctionName + "();\n"
-                + "\t\t\tp." + InputFunctionCall + ";\n"
-                + "\t\t\tif(p." + PreFunctionalCall + " == 1)\n" 
-                + "\t\t\t{\n" +"\t\t\t\t"+Value +"=p."+FunctionalCall+";\n"
-                + "\t\t\t\tp."+OutputFunctionCall+"("+Value+");\n" + "\t\t\t}\n"
-                + "\t\t\telse Console.WriteLine(\"Thong tin nhap khong hop le\");\n"
-                + "\n\t\t\tConsole.ReadLine();\n"
-                + "\t\t}\n"
-                + "\t}\n}";
+
+            if (currentLanguage == Language.CSharp)
+            {
+                code = "\n\t\tpublic static void Main (String[] args)" + "\n\t\t{\n";
+                code += MainInputCode + "\t\t\t" + FunctionName + " p = new " + FunctionName + "();\n"
+                    + "\t\t\tp." + InputFunctionCall + ";\n"
+                    + "\t\t\tif(p." + PreFunctionalCall + " == 1)\n"
+                    + "\t\t\t{\n" + "\t\t\t\t" + Value + "= p." + FunctionalCall + ";\n"
+                    + "\t\t\t\tp." + OutputFunctionCall + "(" + Value + ");\n" + "\t\t\t}\n"
+                    + "\t\t\telse Console.WriteLine(\"Thong tin nhap khong hop le\");\n"
+                    + "\n\t\t\tConsole.ReadLine();\n"
+                    + "\t\t}\n"
+                    + "\t}\n}";
+            }
+            else if (currentLanguage == Language.Java)
+            {
+                code = "\n\tpublic static void Main (String[] args)" + "\n\t{\n";
+                code += "\t\t" + FunctionName + " p = new " + FunctionName + "();\n"
+                    + "\t\tp." + InputFunctionCall + ";\n"
+                    + "\t\tif(p." + PreFunctionalCall + ") == 1)\n"
+                    + "\t\t{\n" + "\t\t\t" + Value + "= p." + FunctionalCall + ");\n"
+                    + "\t\t\tp." + OutputFunctionCall + "();\n" + "\t\t}\n"
+                    + "\t\telse System.out.print(\"Thong tin nhap khong hop le\");\n"
+                    + "\t}\n"
+                    + "}"; 
+            }
+
             
             return code;
         }
