@@ -125,7 +125,7 @@ namespace Formular_Specification
             else ExeName = txtExeName.Text;
 
             if(currentLanguage == Language.CSharp)
-            File.WriteAllText(ExeName + ".cs", txtOutput.Text);
+                File.WriteAllText(ExeName + ".cs", txtOutput.Text);
             else if(currentLanguage == Language.Java)
                 File.WriteAllText(ExeName + ".java", txtOutput.Text);
 
@@ -137,7 +137,8 @@ namespace Formular_Specification
 
         void RunJava(string filename)
         {
-            string text = "path =%path%;" + JavaPath + "@"+filename + "@pause";
+            string text = "path =%path%;" + JavaPath + 
+                "@javac "+filename + ".java@java " + filename +"@pause";
             text = text.Replace("@", System.Environment.NewLine);
             File.WriteAllText(Application.StartupPath + "\\Run.bat", text);
 
@@ -280,7 +281,6 @@ namespace Formular_Specification
 
             HighlightAllCode();
         }
-
         private string RemoveAllBreakLine(string content)
         {
             int SpaceIndex = content.IndexOf("\n");
@@ -460,7 +460,7 @@ namespace Formular_Specification
                                 if (currentLanguage == Language.CSharp)
                                     arr[2] += "\t\t\tbool " + ivalue + " = true";
                                 else if (currentLanguage == Language.Java)
-                                    arr[2] += "\tbool " + ivalue;
+                                    arr[2] += "\tboolean " + ivalue;
                             }
                             else
                             {
@@ -545,9 +545,9 @@ namespace Formular_Specification
                         else if (itype.Contains("B"))
                         {
                             if (currentLanguage == Language.CSharp)
-                                arr[5] += "\t\t";
-
-                            arr[5] += "\tbool[] " + ivalue + " = new bool [100];\n";
+                                arr[5] += "\t\t" + "\tbool[] " + ivalue + " = new bool [100];\n";
+                            if(currentLanguage == Language.Java)
+                                arr[5] += "\t\t" + "\tboolean[] " + ivalue + " = new boolean [100];\n";
                         }
                         else if (itype.Contains("char")) //char* = string
                         {
@@ -680,7 +680,7 @@ namespace Formular_Specification
                                     arr[5] += "\tint[] " + jvalue + " = new int [100];\n";
                                     Code += "\t\t" + jvalue + " = new int[" + ivalue + " + 1];\n"
                                         + "\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t{ \n" 
-                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu\" + i + "+"\":\"" + ");\n" 
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + "+"\":\"" + ");\n" 
                                         + "\t\t\t" + jvalue + "[i]" + "= ip.nextInt();\n\t\t}\n";
                                 }
 
@@ -710,7 +710,7 @@ namespace Formular_Specification
                                     arr[5] += "\tfloat[] " + jvalue + " = new float [100];\n";
                                     Code += "\t\t" + jvalue + " = new float[" + ivalue + " + 1];\n"
                                         + "\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t{ \n"
-                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu\" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\":\"" + ");\n"
                                         + "\t\t\t" + jvalue + "[i]" + "= ip.nextFloat();\n\t\t}\n";
                                 }
 
@@ -723,7 +723,6 @@ namespace Formular_Specification
                                         HamNhap += "ref int " + ivalue + "," + "ref float[] " + jvalue + ",";
                                         param += "int " + ivalue + "," + " float[] " + jvalue + ",";
                                     }
-
                                 }
                             }
                             else if (jtype.Contains("B"))
@@ -739,10 +738,10 @@ namespace Formular_Specification
                                 }
                                 else if (currentLanguage == Language.Java)
                                 {
-                                    arr[5] += "\tfloat[] " + jvalue + " = new bool [100];\n";
-                                    Code += "\t\t" + jvalue + " = new bool[" + ivalue + " + 1];\n"
+                                    arr[5] += "\tfloat[] " + jvalue + " = new boolean [100];\n";
+                                    Code += "\t\t" + jvalue + " = new boolean[" + ivalue + " + 1];\n"
                                         + "\t\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t{ \n"
-                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu\" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\":\"" + ");\n"
                                         + "\t\t\t" + jvalue + "[i]" + "= ip.nextBoolean();\n\t\t}\n";
                                 }
 
@@ -805,7 +804,7 @@ namespace Formular_Specification
                                             if (currentLanguage == Language.CSharp)
                                                 arr[2] += "\t\t\tbool " + fnvalue + " = true";
                                             else if (currentLanguage == Language.Java)
-                                                arr[2] += "\tbool " + fnvalue;
+                                                arr[2] += "\tboolean " + fnvalue;
                                         }
                                         else
                                         {
@@ -944,7 +943,7 @@ namespace Formular_Specification
                                     arr[5] += "\tint[] " + ivalue + " = new int [100];\n";
                                     Code += "\t\t" + ivalue + " = new int[" + jvalue + " + 1];\n"
                                         + "\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t{ \n"
-                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu\" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\":\"" + ");\n"
                                         + "\t\t\t" + ivalue + "[i]" + "= ip.nextInt();\n\t\t}\n";
                                 }
 
@@ -974,7 +973,7 @@ namespace Formular_Specification
                                     arr[5] += "\tfloat[] " + ivalue + " = new float [100];\n";
                                     Code += "\t\t" + ivalue + " = new float[" + jvalue + " + 1];\n"
                                         + "\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t{ \n"
-                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu\" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\":\"" + ");\n"
                                         + "\t\t\t" + ivalue + "[i]" + "= ip.nextFloat();\n\t\t}\n";
                                 }
 
@@ -1002,10 +1001,10 @@ namespace Formular_Specification
                                 }
                                 else if (currentLanguage == Language.Java)
                                 {
-                                    arr[5] += "\tbool[] " + ivalue + " = new bool [100];\n";
-                                    Code += "\t\t" + ivalue + " = new bool[" + jvalue + " + 1];\n"
+                                    arr[5] += "\tboolean[] " + ivalue + " = new boolean [100];\n";
+                                    Code += "\t\t" + ivalue + " = new boolean[" + jvalue + " + 1];\n"
                                         + "\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t{ \n"
-                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu\" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\":\"" + ");\n"
                                         + "\t\t\t" + ivalue + "[i]" + "= ip.nextBoolean();\n\t\t}\n";
                                 }
 
@@ -1069,7 +1068,7 @@ namespace Formular_Specification
                                             if (currentLanguage == Language.CSharp)
                                                 arr[2] += "\t\t\tbool " + fnvalue + " = true";
                                             else if (currentLanguage == Language.Java)
-                                                arr[2] += "\tbool " + fnvalue;
+                                                arr[2] += "\tboolean " + fnvalue;
                                         }
                                         else
                                         {
@@ -1359,7 +1358,7 @@ namespace Formular_Specification
                     }
                     else if (currentLanguage == Language.Java)
                     {
-                        code = "\n\tpublic bool Func_" + FunctionName + "(" + param + ")" + "\n\t{\n";
+                        code = "\n\tpublic boolean Func_" + FunctionName + "(" + param + ")" + "\n\t{\n";
                         code += FunctionExcute(content) + "\n\t}\n";
                     }
                 }
@@ -1459,11 +1458,11 @@ namespace Formular_Specification
             }
             else if (currentLanguage == Language.Java)
             {
-                code = "\n\tpublic static void Main (String[] args)" + "\n\t{\n";
+                code = "\n\tpublic static void main (String[] args)" + "\n\t{\n";
                 code += "\t\t" + FunctionName + " p = new " + FunctionName + "();\n"
                     + "\t\tp." + InputFunctionCall + ";\n"
                     + "\t\tif(p." + PreFunctionalCall + ") == 1)\n"
-                    + "\t\t{\n" + "\t\t\t" + Value + "= p." + FunctionalCall + ");\n"
+                    + "\t\t{\n" + "\t\t\tp." + Value + "= p." + FunctionalCall + ");\n"
                     + "\t\t\tp." + OutputFunctionCall + "();\n" + "\t\t}\n"
                     + "\t\telse System.out.print(\"Thong tin nhap khong hop le\");\n"
                     + "\t}\n"
@@ -1705,6 +1704,12 @@ namespace Formular_Specification
                     "\t\t\t\t}\n" +
                     "\t\t\t}\n" +
                     "\t\t\treturn false;";
+            }
+
+            if (currentLanguage == Language.Java)
+            {
+                Func = Func.Remove(0, 1);
+                Func = Func.Replace("\n\t", "\n");
             }
 
             return Func;
@@ -2017,9 +2022,31 @@ namespace Formular_Specification
         {
             //Tìm vị trí bắt đầu của tu đang xét
             int StartIndex = txtInput.SelectionStart - 1;
+            int index = txtInput.SelectionStart;
+            string currentWord;
+            currentWord = getCurrentWord(ref StartIndex);
+            HighlightCurrentWord(StartIndex, currentWord);
+            if (index > 0 &&
+                index != txtInput.Text.Length &&
+                txtInput.Text[index -1] == ' ')
+            {
+                //txtInput.SelectionStart = index + 1;
+                StartIndex = index - 1;
+                //txtOutput.Text += currentWord + "\n";
+                StartIndex = Math.Min(txtInput.Text.LastIndexOf(' ', StartIndex), txtInput.Text.LastIndexOf('\n', StartIndex));
+                if (StartIndex == -1)
+                    StartIndex = 0;
+                currentWord = txtInput.Text.Substring(StartIndex, index - StartIndex - 1);
+                //txtOutput.Text += currentWord + "\n";
+                HighlightCurrentWord(StartIndex, currentWord);
+            }
+        }
+
+        private string getCurrentWord(ref int StartIndex)
+        {
             while (StartIndex >= 0)
             {
-                if (txtInput.Text[StartIndex] == '\n' || !char.IsLetter(txtInput.Text[StartIndex]))
+                if (txtInput.Text[StartIndex] == '\n' || txtInput.Text[StartIndex] == ' ' || !char.IsLetter(txtInput.Text[StartIndex]))
                 {
                     StartIndex++;
                     break;
@@ -2033,24 +2060,26 @@ namespace Formular_Specification
             int EndIndex = txtInput.SelectionStart;
             while (EndIndex < txtInput.Text.Length)
             {
-                if (txtInput.Text[EndIndex] == '\n' || !char.IsLetter(txtInput.Text[EndIndex]))
+                if (txtInput.Text[EndIndex] == '\n' || txtInput.Text[EndIndex] == ' ' || !char.IsLetter(txtInput.Text[EndIndex]))
                     break;
                 EndIndex++;
             }
 
 
             //lay tu hien tai
-            string currentWord = txtInput.Text.Substring(StartIndex, EndIndex - StartIndex);
-            //MessageBox.Show(currentWord);
+            return txtInput.Text.Substring(StartIndex, EndIndex - StartIndex);
+        }
 
+        private void HighlightCurrentWord(int StartIndex, string currentWord)
+        {
             txtInput.SelectionStart = StartIndex;
             txtInput.SelectionLength = currentWord.Length;
             if (keywords.Contains(currentWord))
             {
-                
+
                 txtInput.SelectionColor = Color.Blue;
                 txtInput.SelectionFont = new Font("Courier New", 12, FontStyle.Bold);
-            } 
+            }
             else if (variable.Contains(currentWord))
             {
                 txtInput.SelectionColor = Color.Red;
