@@ -1298,24 +1298,36 @@ namespace Formular_Specification
             //        content = content.Remove(content.Length - 1, 1);
             //    }
             //}
+            //b == TRUE
+            //TRUE
+            //a>0 && b == TRUE
 
             if (currentLanguage == Language.CSharp)
             {
                 code = "\n\t\tpublic int KiemTra_" + FunctionName + "(" + param + ")\n" + "\t\t{\n";
-                if (content != "")
+
+                if (content == "" || content.ToLower().Equals("true"))
+                {
+                    code += "\t\t\treturn 1;\n" + "\t\t}\n";
+                }
+                else if (content != "")
                 {
                     code += "\t\t\tif (" + content + ")\n\t\t\t{\n" + "\t\t\t\treturn 1;\n" + "\t\t\t} else return 0;\n" + "\t\t}\n";
                 }
-                else code += "\t\t\treturn 1;\n" + "\t\t}\n";
+
             }
             else if (currentLanguage == Language.Java)
             {
                 code = "\n\tpublic int KiemTra_" + FunctionName + "(" + param + ")\n" + "\t{\n";
-                if (content != "")
+
+                if (string.IsNullOrEmpty(content) || content.ToLower().Equals("true"))
+                {
+                    code += "\t\treturn 1;\n" + "\t}\n";
+                }
+                else if (content != "")
                 {
                     code += "\t\tif (" + content + ")\n\t\t{\n" + "\t\t\treturn 1;\n" + "\t\t} else return 0;\n" + "\t}\n";
                 }
-                else code += "\t\treturn 1;\n" + "\t}\n";
             }
 
             return code;
