@@ -1281,15 +1281,16 @@ namespace Formular_Specification
         {
             string code = "";
             content = insertEqual(content);
+            content = RemoveBracketMeaningless(content);
 
-            if (!string.IsNullOrEmpty(content))
-            {
-                if (content.Substring(0, 1).Contains("(") && content.Substring(content.Length - 1, 1).Contains(")"))
-                {
-                    content = content.Remove(0, 1);
-                    content = content.Remove(content.Length - 1, 1);
-                }
-            }
+            //if (!string.IsNullOrEmpty(content))
+            //{
+            //    if (content.Substring(0, 1).Contains("(") && content.Substring(content.Length - 1, 1).Contains(")"))
+            //    {
+            //        content = content.Remove(0, 1);
+            //        content = content.Remove(content.Length - 1, 1);
+            //    }
+            //}
 
             if (currentLanguage == Language.CSharp)
             {
@@ -1305,8 +1306,6 @@ namespace Formular_Specification
                 code = "\n\tpublic int KiemTra_" + FunctionName + "(" + param + ")\n" + "\t{\n";
                 if (content != "")
                 {
-                    content = content.Remove(0, 1);
-                    content = content.Remove(content.Length - 1, 1);
                     code += "\t\tif (" + content + ")\n\t\t{\n" + "\t\t\treturn 1;\n" + "\t\t} else return 0;\n" + "\t}\n";
                 }
                 else code += "\t\treturn 1;\n" + "\t}\n";
@@ -1449,7 +1448,7 @@ namespace Formular_Specification
                 code += MainInputCode + "\t\t\t" + FunctionName + " p = new " + FunctionName + "();\n"
                     + "\t\t\tp." + InputFunctionCall + ";\n"
                     + "\t\t\tif(p." + PreFunctionalCall + " == 1)\n"
-                    + "\t\t\t{\n" + "\t\t\t\t" + Value + "= p." + FunctionalCall + ";\n"
+                    + "\t\t\t{\n" + "\t\t\t\t" + Value + " = p." + FunctionalCall + ";\n"
                     + "\t\t\t\tp." + OutputFunctionCall + "(" + Value + ");\n" + "\t\t\t}\n"
                     + "\t\t\telse Console.WriteLine(\"Thong tin nhap khong hop le\");\n"
                     + "\n\t\t\tConsole.ReadLine();\n"
@@ -1462,7 +1461,7 @@ namespace Formular_Specification
                 code += "\t\t" + FunctionName + " p = new " + FunctionName + "();\n"
                     + "\t\tp." + InputFunctionCall + ";\n"
                     + "\t\tif(p." + PreFunctionalCall + ") == 1)\n"
-                    + "\t\t{\n" + "\t\t\tp." + Value + "= p." + FunctionalCall + ");\n"
+                    + "\t\t{\n" + "\t\t\tp." + Value + " = p." + FunctionalCall + ");\n"
                     + "\t\t\tp." + OutputFunctionCall + "();\n" + "\t\t}\n"
                     + "\t\telse System.out.print(\"Thong tin nhap khong hop le\");\n"
                     + "\t}\n"
