@@ -502,14 +502,14 @@ namespace Formular_Specification
                             if (arr[3] == "")
                             {
                                 if (currentLanguage == Language.CSharp)
-                                    arr[3] += "\t\t\tchar " + ivalue + " = ''";
+                                    arr[3] += "\t\t\tchar " + ivalue + " = ' '";
                                 else if (currentLanguage == Language.Java)
                                     arr[3] += "\tchar " + ivalue;
                             }
                             else
                             {
                                 if (currentLanguage == Language.CSharp)
-                                    arr[3] += "," + ivalue + " = ''";
+                                    arr[3] += "," + ivalue + " = ' '";
                                 else if (currentLanguage == Language.Java)
                                     arr[3] += "," + ivalue;
                             }
@@ -829,7 +829,7 @@ namespace Formular_Specification
                                         if (arr[3] == "")
                                         {
                                             if (currentLanguage == Language.CSharp)
-                                                arr[3] += "\t\t\tchar " + fnvalue + " = ''";
+                                                arr[3] += "\t\t\tchar " + fnvalue + " = ' '";
                                             else if (currentLanguage == Language.Java)
                                                 arr[3] += "\tchar " + fnvalue;
                                         }
@@ -1093,7 +1093,7 @@ namespace Formular_Specification
                                         if (arr[3] == "")
                                         {
                                             if (currentLanguage == Language.CSharp)
-                                                arr[3] += "\t\t\tchar " + fnvalue + " = ''";
+                                                arr[3] += "\t\t\tchar " + fnvalue + " = ' '";
                                             else if (currentLanguage == Language.Java)
                                                 arr[3] += "\tchar " + fnvalue;
                                         }
@@ -1124,7 +1124,7 @@ namespace Formular_Specification
                                             if (currentLanguage == Language.CSharp)
                                                 arr[4] += "\t\t\tstring " + fnvalue + " = \"\"";
                                             else if (currentLanguage == Language.Java)
-                                                arr[4] += "\tstring " + fnvalue;
+                                                arr[4] += "\tString " + fnvalue;
                                         }
                                         else
                                         {
