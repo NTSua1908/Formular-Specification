@@ -65,7 +65,7 @@ namespace Formular_Specification
             txtLanguage.Text = "C#";
             ReadPath();
             txtOutput.BackColor = txtOutput.BackColor;
-            //MessageBox.Show(RemoveBracketMeaningless("((())()()((a = b)))"));
+            //MessageBox.Show(RemoveBracketMeaningless("(x*y+(x-5)"));
         }
 
         private void init()
@@ -1778,10 +1778,20 @@ namespace Formular_Specification
             int startIndex = item.IndexOf("=", valueIndex) + 1;
 
             //Tìm vị trí kết thúc của phần gán giá trị trả về
+            int count = 0;
             int endIndex = startIndex;
             while (endIndex < item.Length)
             {
-                if (item[endIndex] == '&' || item[endIndex] == ')')
+                if (item[endIndex] == ')')
+                    count++;
+                else if (item[endIndex] == '(')
+                    count--;
+                if (count == 0 && (item[endIndex] == '&' || item[endIndex] == ')' || item[endIndex] == '(' ))
+                {
+                    //endIndex--;
+                    break;
+                }
+                else if (count == 1) //Gặp ngoặc mở trước khi có ngoặc đóng
                 {
                     endIndex--;
                     break;
@@ -1792,6 +1802,7 @@ namespace Formular_Specification
                 endIndex = item.Length - 1;
 
             string sentenceReturn = item.Substring(startIndex, endIndex - startIndex + 1);
+            sentenceReturn = RemoveBracketMeaningless(sentenceReturn);
             if (sentenceReturn.ToLower().Equals("false"))
                 sentenceReturn = "false";
             else if (sentenceReturn.ToLower().Equals("true"))
@@ -1886,6 +1897,8 @@ namespace Formular_Specification
                         break;
                     }
                 }
+                if (sum != 0)
+                    break;
                 if (flag)
                 {
                     content = content.Substring(1, content.Length - 2);
