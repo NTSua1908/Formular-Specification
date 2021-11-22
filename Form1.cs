@@ -1611,7 +1611,7 @@ namespace Formular_Specification
             //Tao for
             for (int i = 0; i < lstCondition.Count - 1; i++)
             {
-                index = lstCondition[i].IndexOf("TH");
+                index = lstCondition[i].LastIndexOf("TH");
                 //Lay ten bien (i, j,...)
                 string variable = lstCondition[i].Substring(2, index - 2);
                 lstVariable.Add(variable);
@@ -1640,7 +1640,7 @@ namespace Formular_Specification
             string condition = RemoveBracketMeaningless(lstCondition[lstCondition.Count - 1]);
 
             //Thay the 'a(i)' => 'a[i]'
-            List<char> lstCalculate = new List<char> { '/', '*', '-', '+', '%', '[', '(' }; 
+            List<char> lstCalculate = new List<char> { '/', '*', '-', '+', '%', '[', '(', '>', '<', '=', '!' }; 
             index = condition.IndexOf("(");
             while (index != -1)
             {
