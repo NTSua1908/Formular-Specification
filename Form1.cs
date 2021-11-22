@@ -256,24 +256,29 @@ namespace Formular_Specification
             string FunctionCall = "";  //tham số truyền vào
 
             //hiển thị lên màn hình kết quả
+            //ngôn ngữ C#
             if (!string.IsNullOrEmpty(txtClassName.Text) && currentLanguage == Language.CSharp)
             {
                 txtOutput.Text = "using System;\nusing System.IO;\nusing System.Text;\n" + "namespace FomularSpecification\n" + "{\n" + "\tpublic class " + txtClassName.Text + "\n\t{\n";
+                txtOutput.Text += GenerateInput(InputVariable, OutputVariable, FunctionName, ref param, ref MainInputCode, ref InputFunctioncall, ref FunctionCall);
             }           
-            if(currentLanguage == Language.CSharp) txtOutput.Text = "using System;\nusing System.IO;\nusing System.Text;\n" + "namespace FomularSpecification\n"+"{\n" +"\tpublic class "+ FunctionName+"\n\t{\n";
+            else if(currentLanguage == Language.CSharp) 
             {
                 txtOutput.Text += GenerateInput(InputVariable, OutputVariable, FunctionName, ref param, ref MainInputCode, ref InputFunctioncall, ref FunctionCall);
-            }             
+            }  
+            //ngôn ngữ Java
             if (!string.IsNullOrEmpty(txtClassName.Text) && currentLanguage == Language.Java)
             { 
-                txtOutput.Text = "import java.util.Scanner;\n" + "public class " + FunctionName + "\n{\n"; 
-            }
-            if (currentLanguage == Language.Java)
+                txtOutput.Text = "import java.util.Scanner;\n" + "public class " + FunctionName + "\n{\n";
                 txtOutput.Text += GenerateInput(InputVariable, OutputVariable, FunctionName, ref param, ref MainInputCode, ref InputFunctioncall, ref FunctionCall);
+            }
+            else if (currentLanguage == Language.Java)
+                txtOutput.Text += GenerateInput(InputVariable, OutputVariable, FunctionName, ref param, ref MainInputCode, ref InputFunctioncall, ref FunctionCall);
+
             //Đặt tên hàm
-            string OutputFunctionCall = "Xuat_"+FunctionName;  //hàm xuất
-            string PreFunctionCall = "KiemTra_"+FunctionName+"("+FunctionCall;    //Hàm điều kiện
-            string FunctionalCall = "Func_"+FunctionName+"("+FunctionCall;    //Hàm xử lý
+            string OutputFunctionCall = "Xuat_"+ FunctionName;  //hàm xuất
+            string PreFunctionCall = "KiemTra_"+ FunctionName+"("+FunctionCall;    //Hàm điều kiện
+            string FunctionalCall = "Func_"+ FunctionName+"("+FunctionCall;    //Hàm xử lý
 
             txtOutput.Text+= GenerateOutput(OutputVariable,FunctionName)+ GeneratePre(arrSentence[1], FunctionName, param) 
                 + GenerateFunction(arrSentence[2],OutputVariable, FunctionName, param)  
@@ -281,6 +286,7 @@ namespace Formular_Specification
 
             HighlightAllCode();
         }
+
         private string RemoveAllBreakLine(string content)
         {
             int SpaceIndex = content.IndexOf("\n");
@@ -291,6 +297,7 @@ namespace Formular_Specification
             }
             return content;
         }
+        
         private string RemoveAllSpace(string content)
         {
             int SpaceIndex = content.IndexOf(" ");
@@ -302,7 +309,7 @@ namespace Formular_Specification
 
             return content;
         }
-
+ 
         public string GenerateInput(string InputVariable, string OutputVariable, string FunctionName, ref string param, ref string MainInputCode, ref string InputFunctionCall, ref string FunctionCall)
         {
             String[] arr = new string [6];
@@ -341,11 +348,12 @@ namespace Formular_Specification
                     Input[count] = content.Substring(0); //:)) Input[count] = content
                     content = content.Remove(TwoDot, 1);
                 }
+
                 TwoDot = content.IndexOf(":"); //cập nhật lại vị trí dấu :
                 count++;
             }
 
-            Array.Resize(ref Input, count);
+            Array.Resize(ref Input, count);  //Giảm số lượng mảng Input bằng số lượng đầu vào
 
             arr[0] = arr[1] = arr[2] = arr[3]= arr[4]=arr[5]="";
 
@@ -556,7 +564,7 @@ namespace Formular_Specification
                                 if (currentLanguage == Language.CSharp)
                                     arr[4] += "\t\t\tstring " + ivalue + " = \"\"";
                                 else if (currentLanguage == Language.Java)
-                                    arr[4] += "\tstring " + ivalue;
+                                    arr[4] += "\tString " + ivalue;
                             }
                             else
                             {
@@ -574,13 +582,15 @@ namespace Formular_Specification
                                     FunctionCall += ivalue + ",";
                                     HamNhap += "ref string " + ivalue + ",";
                                     param += "string " + ivalue + ",";
-                                    Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n";
+                                    Code += "\t\t\tConsole.Write(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t\t"
+                                        + ivalue + " = char.Parse(Console.ReadLine());\n";
                                 }
-                                else if(currentLanguage == Language.Java)
+                                else if (currentLanguage == Language.Java)
                                 {
                                     Code += "\t\tSystem.out.print(\"Nhap vao gia tri " + ivalue + ": \");\n\t\t"
                                         + ivalue + " = ip.nextLine();\n";
                                 }
+
                             }
                         }
                     }  
@@ -605,7 +615,7 @@ namespace Formular_Specification
                             HamNhap += ")";   //hàm nhập
 
                             InputFunctionCall = InputFunctionCall.Remove(InputFunctionCall.Length - 1);
-                            InputFunctionCall += ")";  //gọi hàm từ main
+                            InputFunctionCall += ")";  //gọi hàm nhập từ hàm main
 
                             FunctionCall = FunctionCall.Remove(FunctionCall.Length - 1);
                             FunctionCall += ")";  //tham số truyền vào khi gọi từ main
@@ -680,7 +690,7 @@ namespace Formular_Specification
                                     arr[5] += "\tint[] " + jvalue + " = new int [100];\n";
                                     Code += "\t\t" + jvalue + " = new int[" + ivalue + " + 1];\n"
                                         + "\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t{ \n" 
-                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + "+"\":\"" + ");\n" 
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + "+"\" : \"" + ");\n" 
                                         + "\t\t\t" + jvalue + "[i]" + "= ip.nextInt();\n\t\t}\n";
                                 }
 
@@ -710,7 +720,7 @@ namespace Formular_Specification
                                     arr[5] += "\tfloat[] " + jvalue + " = new float [100];\n";
                                     Code += "\t\t" + jvalue + " = new float[" + ivalue + " + 1];\n"
                                         + "\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t{ \n"
-                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\" : \"" + ");\n"
                                         + "\t\t\t" + jvalue + "[i]" + "= ip.nextFloat();\n\t\t}\n";
                                 }
 
@@ -741,7 +751,7 @@ namespace Formular_Specification
                                     arr[5] += "\tfloat[] " + jvalue + " = new boolean [100];\n";
                                     Code += "\t\t" + jvalue + " = new boolean[" + ivalue + " + 1];\n"
                                         + "\t\t\tfor (int i=1;i<=" + ivalue + ";i++)\n" + "\t\t{ \n"
-                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\" : \"" + ");\n"
                                         + "\t\t\t" + jvalue + "[i]" + "= ip.nextBoolean();\n\t\t}\n";
                                 }
 
@@ -943,7 +953,7 @@ namespace Formular_Specification
                                     arr[5] += "\tint[] " + ivalue + " = new int [100];\n";
                                     Code += "\t\t" + ivalue + " = new int[" + jvalue + " + 1];\n"
                                         + "\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t{ \n"
-                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\" : \"" + ");\n"
                                         + "\t\t\t" + ivalue + "[i]" + "= ip.nextInt();\n\t\t}\n";
                                 }
 
@@ -973,7 +983,7 @@ namespace Formular_Specification
                                     arr[5] += "\tfloat[] " + ivalue + " = new float [100];\n";
                                     Code += "\t\t" + ivalue + " = new float[" + jvalue + " + 1];\n"
                                         + "\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t{ \n"
-                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\" : \"" + ");\n"
                                         + "\t\t\t" + ivalue + "[i]" + "= ip.nextFloat();\n\t\t}\n";
                                 }
 
@@ -1004,7 +1014,7 @@ namespace Formular_Specification
                                     arr[5] += "\tboolean[] " + ivalue + " = new boolean [100];\n";
                                     Code += "\t\t" + ivalue + " = new boolean[" + jvalue + " + 1];\n"
                                         + "\t\tfor (int i=1;i<=" + jvalue + ";i++)\n" + "\t\t{ \n"
-                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\":\"" + ");\n"
+                                        + "\t\t\tSystem.out.print(\"Nhap vao phan thu \" + i + " + "\" : \"" + ");\n"
                                         + "\t\t\t" + ivalue + "[i]" + "= ip.nextBoolean();\n\t\t}\n";
                                 }
 
@@ -1170,15 +1180,16 @@ namespace Formular_Specification
                 }
             }
 
-            MainInputCode = arr[0] + arr[1] + arr[2] + arr[3] + arr[4] + arr[5];
+            MainInputCode = arr[0] + arr[1] + arr[2] + arr[3] + arr[4] + arr[5];  //Khởi tạo biến
 
             if (currentLanguage == Language.Java)
             {
                 return MainInputCode + "\n" + HamNhap + "\n\t{\n"+"\t\tScanner ip = new Scanner(System.in);\n" + Code + "\n\t\tip.close();\n"+"\t}\n\n";
             }
+
             return HamNhap + "\n\t\t{\n" + Code + "\t\t}\n\n";
         }
-
+        
         private string GenerateOutput(string OutputVariable, string FunctionName)
         {
             string code = "";
@@ -1260,16 +1271,12 @@ namespace Formular_Specification
                 {
                     if (currentLanguage == Language.Java)
                     {
-                        code += "(string " + value + ")";
                         code += "\n\t{\n" + "\t\tSystem.out.print(\"Ket qua la: \" + " + value + ");\n\t}\n"; ;
                     }
                     else if (currentLanguage == Language.CSharp)
                     {
-                        if (currentLanguage == Language.CSharp)
-                        {
-                            code += "(string " + value + ")";
-                            code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}\"," + value + ");\n\t\t}\n";
-                        }
+                        code += "(string " + value + ")";                            
+                        code += "\n\t\t{\n" + "\t\t\tConsole.Write(\"Ket qua la: {0}\"," + value + ");\n\t\t}\n";
                     }
                 }
             }
@@ -1426,7 +1433,7 @@ namespace Formular_Specification
                     }
                     else if (currentLanguage == Language.Java)
                     {
-                        code = "\n\tpublic string Func_" + FunctionName + "(" + param + ")" + "\n\t{\n";
+                        code = "\n\tpublic String Func_" + FunctionName + "(" + param + ")" + "\n\t{\n";
                         code += FunctionExcute(content) + "\n\t}\n";
                     }
                 }
@@ -1435,10 +1442,10 @@ namespace Formular_Specification
             return code;
         }
 
-        private string GenerateMain(string OutputVariable,string MainInputCode, string FunctionName, string InputFunctionCall, string PreFunctionalCall, string FunctionalCall, string OutputFunctionCall)
+        private string GenerateMain(string OutputVariable, string MainInputCode, string FunctionName, string InputFunctionCall, string PreFunctionalCall, string FunctionalCall, string OutputFunctionCall)
         {
             int TwoDot = OutputVariable.IndexOf(":");
-            string Value = OutputVariable.Substring(0,TwoDot);
+            string Value = OutputVariable.Substring(0, TwoDot);
             string code = "";
 
 
@@ -1465,10 +1472,10 @@ namespace Formular_Specification
                     + "\t\t\tp." + OutputFunctionCall + "();\n" + "\t\t}\n"
                     + "\t\telse System.out.print(\"Thong tin nhap khong hop le\");\n"
                     + "\t}\n"
-                    + "}"; 
+                    + "}";
             }
 
-            
+
             return code;
         }
 
