@@ -28,7 +28,7 @@ namespace Formular_Specification
         //string[] Calculation = { "+", "-", "*", "/", "%", ">", "<", "=", "!=", ">=", "<=", "!", "&&", "||"};
 
         string[] codeKeywords = { "using", "namespace", "class", "static", "if", "for", 
-            "return", "void", "public", "private", "protected", "ref", "float", "int", "Int32","bool", 
+            "return", "void", "public", "private", "protected", "ref", "float", "int", "Int32","bool", "boolean",
             "string", "Console", "float[]", "int[]", "string[]"};
         string[] function = { "Write", "WriteLine", "Parse", "Readline"};
 
@@ -245,7 +245,7 @@ namespace Formular_Specification
             int indexOutput = arrSentence[0].IndexOf(")");
             FunctionName = content.Substring(0, indexInput);   //lấy tên hàm
 
-            if (string.IsNullOrEmpty(txtClassName.Text) || txtClassName.Text!=FunctionName)
+            if (string.IsNullOrEmpty(txtClassName.Text))
                 txtClassName.Text = FunctionName;
             else FunctionName = txtClassName.Text;
             String InputVariable = arrSentence[0].Substring(indexInput + 1, indexOutput - indexInput - 1);  //lấy input
@@ -1525,7 +1525,7 @@ namespace Formular_Specification
             for (int i = 0; i < lstCondition.Count; i++)
             {
                 Func += CreateConditionCode(lstCondition[i]) + "\n";
-                if (i == lstCondition.Count - 1)
+                if (i == lstCondition.Count - 1 && Func.IndexOf("if")!=-1)
                 {
                     //lay gia tri return cuoi cung
                     int startIndex = Func.LastIndexOf("return");
