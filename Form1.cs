@@ -29,8 +29,11 @@ namespace Formular_Specification
 
         string[] codeKeywords = { "using", "namespace", "class", "static", "if", "for", 
             "return", "void", "public", "private", "protected", "ref", "float", "int", "Int32","bool", "boolean",
-            "string", "Console", "float[]", "int[]", "string[]"};
-        string[] function = { "Write", "WriteLine", "Parse", "Readline"};
+            "string", "String", "Console", "float[]", "int[]", "string[]", "String[]", "Scanner",
+            "System", "import"
+        };
+        string[] function = { "Write", "WriteLine", "Parse", "ReadLine", "out", "print", "nextFloat", 
+            "nextInt", "nextBoolean", "close" };
 
         Stack<string> undo;
         Stack<int> undoCursor;
@@ -240,6 +243,7 @@ namespace Formular_Specification
             //indexLine3 + 4 => Lay noi dung dong 3 bo tu "Post"
             arrSentence[2] = content.Substring(indexLine3 + 4, content.Length - (indexLine3 + 4));
 
+
             //Xử lý input
             int indexInput = arrSentence[0].IndexOf("(");  
             int indexOutput = arrSentence[0].IndexOf(")");
@@ -305,6 +309,13 @@ namespace Formular_Specification
             {
                 content = content.Remove(SpaceIndex, 1);
                 SpaceIndex = content.IndexOf(" ", SpaceIndex);
+            }
+
+            SpaceIndex = content.IndexOf("\t");
+            while (SpaceIndex >= 0)
+            {
+                content = content.Remove(SpaceIndex, 1);
+                SpaceIndex = content.IndexOf("\t", SpaceIndex);
             }
 
             return content;
@@ -1539,18 +1550,23 @@ namespace Formular_Specification
             //    s += item + "\n";
             //}
             //MessageBox.Show(s);
+            
 
             //Xử lí tách từng điều kiện và giá trị trả về
             for (int i = 0; i < lstCondition.Count; i++)
             {
                 Func += CreateConditionCode(lstCondition[i]) + "\n";
-                if (i == lstCondition.Count - 1 && Func.IndexOf("if")!=-1)
+                if (i == lstCondition.Count - 1 )
                 {
-                    //lay gia tri return cuoi cung
-                    int startIndex = Func.LastIndexOf("return");
-                    int endIndex = Func.LastIndexOf(";");
-                    string finalReturn = Func.Substring(startIndex, endIndex - startIndex);
-                    Func += "\t\t\t" + finalReturn + ";";
+                    if (Regex.Matches(Func, "if").Count == Regex.Matches(Func, "return").Count)
+                    {
+                        //lay gia tri return cuoi cung
+                        int startIndex = Func.LastIndexOf("return");
+                        int endIndex = Func.LastIndexOf(";");
+                        string finalReturn = Func.Substring(startIndex, endIndex - startIndex);
+                        Func += "\t\t\t" + finalReturn + ";";
+                    }
+                    else Func = Func.Remove(Func.Length - 1);
                 }
             }
 
@@ -1575,6 +1591,7 @@ namespace Formular_Specification
             List<string> lstCondition = new List<string>();
             List<string> lstVariable = new List<string>();
 
+            content = RemoveBracketMeaningless(content);
             int index = content.IndexOf("=");
             content = content.Remove(0, index + 1);
             content = RemoveBracketMeaningless(content);
@@ -1644,7 +1661,7 @@ namespace Formular_Specification
             index = condition.IndexOf("(");
             while (index != -1)
             {
-                if (lstCalculate.Contains(condition[index - 1]))
+                if (index == 0 || lstCalculate.Contains(condition[index - 1]))
                 {
                     index = condition.IndexOf("(", index + 1);
                     continue;
@@ -1780,18 +1797,27 @@ namespace Formular_Specification
             //Tìm vị trí kết thúc của phần gán giá trị trả về
             int count = 0;
             int endIndex = startIndex;
+            bool flag = true;
             while (endIndex < item.Length)
             {
                 if (item[endIndex] == ')')
                     count++;
                 else if (item[endIndex] == '(')
-                    count--;
-                if (count == 0 && (item[endIndex] == '&' || item[endIndex] == ')' || item[endIndex] == '(' ))
                 {
-                    //endIndex--;
+                    count--;
+                    flag = true;
+                }
+
+                if (item[endIndex] == '&')
+                {
+                    endIndex--;
                     break;
                 }
-                else if (count == 1) //Gặp ngoặc mở trước khi có ngoặc đóng
+                if (count == 0 &&  item[endIndex] == ')') //Gap được ngoac dong va lúc này đã đủ dấu ngoặc(count = 0)
+                {
+                    break;
+                }
+                else if (count == 1) //Gặp ngoặc mở trước khi có ngoặc đóng vd (kq = x)
                 {
                     endIndex--;
                     break;
